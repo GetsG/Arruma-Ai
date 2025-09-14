@@ -1,14 +1,9 @@
-@media (max-width: 480px) {
-  .component_acesso {
-    padding: 10px;
-  }
-}
-
 .component{
-    height: calc(100vh - 60px);
+    min-height: calc(100vh - 100px);
     justify-items: center;
     align-self: center;
     align-content: center;
+    margin: 20px;
 }
 
 .titulo{
