@@ -1,0 +1,9 @@
+.component_header{
+    display: block;
+    height: 60px;
+    background-color: #3eb162;
+    padding: 10px;
+    text-align: center;
+    border-radius: 0 0 20px 20px;
+    color: white;
+}
