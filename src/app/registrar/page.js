@@ -1,6 +1,6 @@
 import Header from '@/componentes/Header/Header'
 import Cadastro from '@/componentes/Login/Cadastro'
-import estilos from './cadastro.module.css'
+import estilos from './registrar.module.css'
 
 export default function Teste() {
   return (

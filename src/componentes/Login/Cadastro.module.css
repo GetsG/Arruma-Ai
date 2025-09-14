@@ -3,7 +3,7 @@
     height: 100%;
     width: calc(400px - 21px);
     padding: 20px;
-    background-color: #3eb162;
+    background-color: #FFFFFF;
     border: 1px solid #023f15;
     border-radius: 20px;
     flex-direction: column;
@@ -57,9 +57,16 @@
     margin-top: 40px;
 }
 
+.cadastrar{
+    background-color: #64b868;
+}
+
 .container_botoes button{
     width: 150px;
     padding: 15px;
     border-radius: 20px;
     cursor: pointer;
+    font-weight: bold;
+    border: 1px solid black;
 }
+

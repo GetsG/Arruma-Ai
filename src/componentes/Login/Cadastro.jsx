@@ -43,8 +43,8 @@ export default function Cadastro(){
             </div>
 
             <div className={estilos.container_botoes}>
-                <button>Cadastrar</button>
                 <button>Cancelar</button>
+                <button className={estilos.cadastrar}>Cadastrar</button>
             </div>
         </div>
     )
