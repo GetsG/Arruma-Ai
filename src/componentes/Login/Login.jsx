@@ -1,6 +1,7 @@
 import estilos from "./Login.module.css"
 import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa";
+import Link from "next/link";
 
 export default function Login(){
     return(
@@ -24,7 +25,7 @@ export default function Login(){
                 <div className={estilos.component_links}>
                     <a className={estilos.recuperar_senha} href="#">Esqueci a senha</a>
                     <span className={estilos.separator}>|</span>
-                    <a className={estilos.criar_conta} href="#">Criar conta</a>
+                    <Link href="/registrar" className={estilos.criar_conta}>Criar conta</Link>
                 </div>
 
                 <button className={estilos.acessar}>Entrar</button>

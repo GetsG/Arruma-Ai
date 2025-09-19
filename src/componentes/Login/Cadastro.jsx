@@ -1,4 +1,5 @@
 import estilos from './Cadastro.module.css'
+import Link from "next/link";
 
 export default function Cadastro(){
     return(
@@ -43,8 +44,13 @@ export default function Cadastro(){
             </div>
 
             <div className={estilos.container_botoes}>
-                <button>Cancelar</button>
-                <button className={estilos.cadastrar}>Cadastrar</button>
+                <Link href="/">
+                    <button>Cancelar</button>
+                </Link>
+
+                <Link href="/registrar/codigo">
+                    <button className={estilos.cadastrar}>Cadastrar</button>
+                </Link>
             </div>
         </div>
     )
