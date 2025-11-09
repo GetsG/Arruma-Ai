@@ -1,4 +1,56 @@
 .container{
-    background-color: #06a0bb;
-    min-height: 100svh;
+    display: flex;
+    padding: 20px;
+    text-align: center;
+    background-color: #ffffff;
+    border-radius: 20px;
+    flex-direction: column;
+    justify-self: center;
+    margin: 100px auto;
+    border: 1px solid #023f15;
+}
+
+.texto{
+    text-align: center;
+    margin-bottom: 30px;
+    margin-top: 30px;
+}
+
+.texto p{
+    font-size: 18px; 
+    line-height: 1.5;
+}
+
+.container input{
+    padding: 5px 0;
+    width: 300px;
+    align-self: center;
+}
+
+.botoes{
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.botoes button{
+    padding: 5px 40px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.enviar{
+    background-color: #529e56;
+}
+
+.reenviar{
+    border-radius: 20px;
+    cursor: pointer;
+    padding: 5px 0px;
+    margin-top: 5px;
+    width: 300px;
+    align-self: center;
 }

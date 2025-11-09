@@ -1,14 +1,27 @@
-import Header from '@/componentes/Header/Header';
-import Token from '@/componentes/Login/Token';
 import estilos from './codigo.module.css';
 
 export default function Codigo(){
+
+    
+
     return(
         <div className={estilos.container}>
-            <Header/>
-            <div className={estilos.token}>
-                <Token/>
+
+            <h1>Digite o código</h1>
+
+            <div className={estilos.texto}>
+                <p>Um código de verificação foi enviado para o e-mail <span>teste@gmail.com</span>.</p>
+                <p>Insira-o abaixo para prosseguir.</p>
             </div>
+
+            <input></input>
+
+            <div className={estilos.botoes}>
+                <button>Voltar</button>
+                <button className={estilos.enviar}>Enviar</button>
+            </div>
+
+            <button className={estilos.reenviar}>Reenviar Código (--/--)</button>
         </div>
     )
 }
