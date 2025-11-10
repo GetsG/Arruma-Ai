@@ -29,7 +29,7 @@ export default function Home() {
                     <Link href="/registrar" className={estilos.criar_conta}>Criar conta</Link>
                 </div>
 
-                <button className={estilos.acessar}>Entrar</button>
+               <Link href="/ocorrencias" className={estilos.linkAcessar}> <button className={estilos.acessar}>Entrar</button> </Link>
             </div>
     <hr/>
 

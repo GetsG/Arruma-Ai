@@ -68,6 +68,11 @@
     font-weight: bold;
     border: 0px;
     cursor: pointer;
+    text-decoration: none;
+}
+
+.linkAcessar{
+    text-decoration: none;;
 }
 
 .tipos_acessos{
