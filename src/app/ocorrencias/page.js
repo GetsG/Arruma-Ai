@@ -1,5 +1,5 @@
 import estilos from "./ocorrencias.module.css";
-import Ocorrencia from "@/componentes/Ocorrencias/Ocorrencia";
+import CardOcorrencia from "../../componentes/CardOcorrencias/Ocorrencia.jsx";
 
 export default function Ocorrencias() {
 
@@ -29,7 +29,7 @@ export default function Ocorrencias() {
 
         <tbody>
           {ocorrencias.map((o) => (
-            <Ocorrencia key={o.id} descricao={o.titulo} categoria={o.categoria} status={o.status}/>
+            <CardOcorrencia key={o.id} descricao={o.titulo} categoria={o.categoria} status={o.status}/>
           ))}
         </tbody>
 

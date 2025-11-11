@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import HeaderSwitcher from "@/componentes/HeaderSwitcher/HeaderSwitcher";
+import HeaderSwitcher from "../componentes/HeaderSwitcher/HeaderSwitcher";
 
 
 const geistSans = Geist({
