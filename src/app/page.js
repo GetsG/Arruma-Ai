@@ -1,11 +1,27 @@
+'use client';
+import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import iconeFacilidade from "/public/tela-inicial/Icone-facilidade.png";
 import melhoreSuaCidade from "/public/tela-inicial/ilustracao-melhore-sua-cidade.png";
 import estilos from "./page.module.css";
-import Link from "next/link";
+import Header from "../componentes/Header-Inicial/Header-Inicial.jsx";
+
+
+
 
 export default function Home() {
+
+ const router = useRouter();
+    
+  const handleClick = () => {
+    router.push('/logar');
+  };
+
   return (
+    <>
+
+        <Header/>
+
         <div className={estilos.container}>
 
             <div className={estilos.mensagemInicial}>
@@ -23,7 +39,7 @@ export default function Home() {
                     <p>Com um clique, você faz a diferença.</p>
                 </div>
 
-                <Link href="/logar"><button>Vamos começar ?</button></Link>
+                <button onClick={handleClick}>Vamos começar ?</button>
             </div>
 
 
@@ -31,7 +47,7 @@ export default function Home() {
 
 
         </div>
-
+</>
   );
 }
 

@@ -1,5 +1,6 @@
 import estilos from "./ocorrencias.module.css";
 import CardOcorrencia from "../../componentes/CardOcorrencias/Ocorrencia.jsx";
+import Header from "../../componentes/Header/Header.jsx";
 
 export default function Ocorrencias() {
 

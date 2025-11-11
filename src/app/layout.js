@@ -1,6 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import HeaderSwitcher from "../componentes/HeaderSwitcher/HeaderSwitcher";
 
 
 const geistSans = Geist({
@@ -22,9 +21,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
 
   return (
-    <html lang="en">
+    <html lang="pt-br">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <HeaderSwitcher/>
         {children} 
       </body>
     </html>

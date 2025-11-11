@@ -1,8 +1,12 @@
 import estilos from './registrar.module.css'
 import Link from "next/link";
+import Header from "../../componentes/Header/Header.jsx"
 
 export default function Registrar() {
   return (
+    <>
+           <Header/>
+
         <div className={estilos.container}>
             <h1>Criar conta</h1>
         
@@ -54,6 +58,6 @@ export default function Registrar() {
             </div>
         </div>
 
-
+</>
 );
 }

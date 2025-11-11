@@ -1,10 +1,25 @@
+'use client';
+import { useRouter } from 'next/navigation';
 import estilos from "./logar.module.css"
 import { FcGoogle } from "react-icons/fc";
 import { FaApple } from "react-icons/fa";
 import Link from "next/link";
+import Header from '../../componentes/Header/Header';
 
 export default function Logar() {
+
+    const router = useRouter();
+
+    const handleClick = () => {
+    router.push('/home'); // muda para a rota /home
+  };
+
   return (
+
+    <>
+
+    <Header/>
+
       <div className={estilos.container}>
 
             <h1 className={estilos.titulo}>Entrar</h1>
@@ -28,7 +43,7 @@ export default function Logar() {
                     <Link href="/registrar" className={estilos.criar_conta}>Criar conta</Link>
                 </div>
 
-               <Link href="/ocorrencias" className={estilos.linkAcessar}> <button className={estilos.acessar}>Entrar</button> </Link>
+               <button onClick={handleClick} className={estilos.acessar}>Entrar</button>
             </div>
     <hr/>
 
@@ -38,6 +53,7 @@ export default function Logar() {
             </div>
 
         </div>
+    </>
 
   );
 }
