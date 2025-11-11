@@ -1,42 +1,34 @@
-import Header from "@/componentes/Header/Header"
-import estilos from "./page.module.css"
-import { FcGoogle } from "react-icons/fc";
-import { FaApple } from "react-icons/fa";
+import Image from "next/image";
+import iconeFacilidade from "/public/tela-inicial/Icone-facilidade.png";
+import melhoreSuaCidade from "/public/tela-inicial/ilustracao-melhore-sua-cidade.png";
+import estilos from "./page.module.css";
 import Link from "next/link";
 
 export default function Home() {
   return (
-      <div className={estilos.container}>
+        <div className={estilos.container}>
 
-            <h1 className={estilos.titulo}>Entrar</h1>
+            <div className={estilos.mensagemInicial}>
+                <Image className={estilos.iconeFacilidade} src={iconeFacilidade} alt="Ícone de facilidade"/>
+                <p>SIMPLES ASSIM !</p>
+            </div>
 
-            <div className={estilos.component_acesso}>
+            <div className={estilos.containerImagemMelhoreSuaCidade}>
+                <Image className={estilos.imagemMelhoreSuaCidade} src={melhoreSuaCidade} />
+            </div>
 
-                <div className={estilos.component_infos}>
-                    <div>
-                        <p>E-mail:</p>
-                        <input></input>
-                    </div>
-                    <div>
-                        <p>Senha:</p>
-                        <input type="password"></input>
-                    </div>    
-                </div>
-                
-                <div className={estilos.component_links}>
-                    <a className={estilos.recuperar_senha} href="#">Esqueci a senha</a>
-                    <span className={estilos.separator}>|</span>
-                    <Link href="/registrar" className={estilos.criar_conta}>Criar conta</Link>
+            <div className={estilos.containerMensagemFinal}>
+                <div className={estilos.msg}>
+                    <h2>Seja a mudança !</h2>
+                    <p>Com um clique, você faz a diferença.</p>
                 </div>
 
-               <Link href="/ocorrencias" className={estilos.linkAcessar}> <button className={estilos.acessar}>Entrar</button> </Link>
+                <Link href="/logar"><button>Vamos começar ?</button></Link>
             </div>
-    <hr/>
 
-            <div className={estilos.tipos_acessos}>
-                <button><FcGoogle className={estilos.logos}/> Continue com Google</button>
-                <button><FaApple className={estilos.logos}/> Continue com Apple</button>
-            </div>
+
+
+
 
         </div>
 

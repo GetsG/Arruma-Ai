@@ -44,11 +44,11 @@ export default function Registrar() {
             </div>
 
             <div className={estilos.container_botoes}>
-                <Link href="/">
+                <Link href="/logar">
                     <button>Cancelar</button>
                 </Link>
 
-                <Link href="/registrar/codigo">
+                <Link href="/logar">
                     <button className={estilos.cadastrar}>Cadastrar</button>
                 </Link>
             </div>

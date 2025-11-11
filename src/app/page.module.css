@@ -1,97 +1,69 @@
 .container{
-    min-height: calc(100vh - 100px);
+
+}
+
+.mensagemInicial{
+    display: flex;
+    background-color: #2F9D5382;
+    width: 220px;
     justify-items: center;
-    align-self: center;
-    align-content: center;
-    margin: 20px;
-}
-
-.titulo{
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
-.component_acesso{
-    justify-self: center;
-    width: 100%;
-    max-width: 400px;
-}
-
-.component_infos{
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.component_infos p{
-    font-size: 18px;
-}
-
-.component_acesso input{
-    padding: 15px;
-    width: 100%;
-    background-color: rgb(221, 217, 217);
-    border: 1px solid #3eb162;
-    border-radius: 13px;
-}
-
-.component_links{
-    margin-top: 14px;
-    display: flex;
     justify-content: center;
+    margin: 35px auto 0px;
+
     align-items: center;
-    gap: 70px;
-    margin-right: 30px;
+    padding: 5px;
+    border-radius: 100px;
+    gap: 13px;
 }
 
-.component_links a{
-    text-decoration: none;
-    color: black;
-    font-size: 13px;
-}
-
-
-.separator {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.acessar{
-    display: block;
-    margin: auto;
-    padding: 10px 40px;
-    margin-top: 30px;
-    margin-bottom: 30px;
-    background-color: #64b868;
-    border-radius: 13px;
+.mensagemInicial p{
+    font-size: 15px;
     font-weight: bold;
-    border: 0px;
-    cursor: pointer;
-    text-decoration: none;
 }
 
-.linkAcessar{
-    text-decoration: none;;
+.iconeFacilidade{
+    width: 45px;
+    height: 45px;
 }
 
-.tipos_acessos{
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.tipos_acessos button{
+.containerImagemMelhoreSuaCidade{
     display: flex;
     justify-content: center;
-    gap: 15px;
-    align-items: center;
-    padding: 10px;
-    width: 100%;
-    
+    margin: 0 auto;
 }
 
-.logos{
-    font-size: 30px;
-    
+.imagemMelhoreSuaCidade{
+  width: 100%;
+  height: auto;
+  max-width: 500px; /* limite para não ficar gigante no desktop */
+  margin: 30px 0;
 }
+
+.containerMensagemFinal{
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.msg h2{
+    font-size: 35px;
+}
+
+.msg p{
+    font-size: 27px;
+}
+
+.containerMensagemFinal button{
+    background-color: #2F9D53;
+    color: white;
+    border: 0px;
+    width: fit-content;
+    text-align: center;
+    margin: 20px auto;
+    padding: 20px 40px;
+    border-radius: 100px;
+    font-size: 30px;
+    font-weight: bold;
+    margin-top: 60px;
+}
+
