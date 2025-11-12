@@ -1,0 +1,39 @@
+.cadastroOcorrencia{
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.tabela{
+    width: 95%;
+    border-collapse:separate;
+    border-spacing: 0 8px;
+    margin: 0 2.5%;
+    table-layout: fixed;
+    
+}
+
+.tabela th, .tabela td{
+    padding: 15px 24px;
+    white-space: nowrap;
+    text-align:start;
+   
+    
+    box-sizing: border-box;
+}
+
+.tabela td{
+  text-overflow: ellipsis;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* importante: arredondar os cantos de cada linha */
+.tabela tbody tr td:first-child {
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+.tabela tbody tr td:last-child {
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+}

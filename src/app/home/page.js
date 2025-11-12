@@ -1,3 +1,6 @@
+'use client';
+import { useRouter } from 'next/navigation';
+
 import Image from "next/image";
 import iconeMais from "/public/home/+.png";
 import agua from "/public/home/gota.png";
@@ -7,6 +10,14 @@ import estilos from "./home.module.css";
 import Nav from "../../componentes/Nav/Nav.jsx";
 
 export default function Home(){
+
+const router = useRouter();
+
+    function criarSolicitacao(){
+        router.push('/ocorrencias');
+    }
+
+
     return(
 
         <>
@@ -17,7 +28,7 @@ export default function Home(){
                     <h1>Oi, ...!</h1>
                     <p>Que tal ajudar a melhorar sua cidade agora?</p>
                 </div>
-                <button> <Image src={iconeMais} alt="Icone mais para criar uma solicitação"/>Criar nova solicitação</button>
+                <button onClick={criarSolicitacao}> <Image src={iconeMais} alt="Icone mais para criar uma solicitação"/>Criar nova solicitação</button>
             </div>
 
             <div className={estilos.container_main}>
