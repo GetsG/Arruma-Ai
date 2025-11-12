@@ -46,14 +46,14 @@ const [estado, setEstado] = useState("");
                                     <select id="categoria" onChange={(e) => setCategoria(e.target.value)}> aa
                                         <option></option>
                                         <option value="Buraco na Via">Buraco na Via</option>
-                                        <option value="iluminação Pública">Iluminação pública</option>
+                                        <option value="Iluminação Pública">Iluminação pública</option>
                                         <option value="Semáforo">Semáforo</option>
                                     </select>
                                 </label>
                             </div>
                         </div>
 
-                        <div className={estilos.conteudo}>
+                        <div className={estilos.descricao}>
                             <h2>Descrição</h2>
                             <label htmlFor="descricao">
                                 <input id="nome" 
@@ -63,7 +63,7 @@ const [estado, setEstado] = useState("");
                             </label>
                         </div>
 
-                        <div className={estilos.conteudo}>
+                        <div className={estilos.imagem}>
                             <h2>Imagem :</h2>
 
                             <label htmlFor="imagem">
@@ -82,9 +82,11 @@ const [estado, setEstado] = useState("");
                                 alt="Prévia da imagem"
                                 width={200}/>
                             )}
+
+                            <p>Anexe foto para ajudar na solicitação</p>
                         </div>
 
-                        <div className={estilos.conteudo}>
+                        <div className={estilos.grau_intensidade}>
                             <h2>Grau de intensidade :</h2>
                             <p>Escolha com sinceridade o grau de intensidade da solicitação</p>
                             <label htmlFor="grauIntensidade">
@@ -97,7 +99,7 @@ const [estado, setEstado] = useState("");
                             </label>
                         </div>
 
-                        <div className={estilos.conteudo}>
+                        <div className={estilos.endereco}>
                             <h2>Endereço</h2>
 
                             <button>Marcar local no mapa</button>
@@ -139,7 +141,7 @@ const [estado, setEstado] = useState("");
                             </label>
                         </div>
 
-                            <button>Enviar Solicitação</button>
+                            <button className={estilos.enviar}>Enviar Solicitação</button>
 
                     </form>
             </div>

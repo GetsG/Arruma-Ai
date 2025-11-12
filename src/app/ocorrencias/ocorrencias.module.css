@@ -30,8 +30,7 @@
 
 .categoria{
     background-color: white;
-    margin: 0 auto;
-    width: fit-content;
+    margin: 0 auto 20px;
     border-radius: 20px;
     width: 90%;
     height: 140px;
@@ -80,4 +79,80 @@
 
 .categoria_opcoes option{
     background-color: white;
+}
+
+/*-------------------------------
+DESCRIÇÃO: */
+
+.descricao{
+    background-color: white;
+    margin: 0 auto 20px;
+    border-radius: 20px;
+    width: 90%;
+    height: 140px;
+    max-width: 400px; /* limite para não ficar gigante no desktop */
+    padding: 30px;
+}
+
+/*-------------------------------
+IMAGEM: */
+
+.imagem{
+    background-color: white;
+    margin: 0 auto 20px;
+    border-radius: 20px;
+    width: 90%;
+    height: 140px;
+    max-width: 400px; /* limite para não ficar gigante no desktop */
+    padding: 30px;
+}
+
+/*-------------------------------
+GRAU INTENSIDADE: */
+
+.grau_intensidade{
+    background-color: white;
+    margin: 0 auto 20px;
+    border-radius: 20px;
+    width: 90%;
+    height: 140px;
+    max-width: 400px; /* limite para não ficar gigante no desktop */
+    padding: 30px;
+}
+
+/*-------------------------------
+ENDEREÇO: */
+
+.endereco{
+    background-color: white;
+    margin: 0 auto 20px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px; /* limite para não ficar gigante no desktop */
+    padding: 30px;
+}
+
+.endereco label{
+    display: flex;
+    justify-content: space-between;
+    width: auto;
+    font-size: 11px;
+}
+
+.endereco input{
+    width: 140px;
+}
+
+/*-------------------------------
+ENVIAR: */
+
+.enviar{
+    display: flex;
+    background-color: #2F9D53;
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 0 auto 80px;
+    border: 0px;
 }
