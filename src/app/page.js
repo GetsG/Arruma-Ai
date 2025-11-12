@@ -25,12 +25,12 @@ export default function Home() {
         <div className={estilos.container}>
 
             <div className={estilos.mensagemInicial}>
-                <Image className={estilos.iconeFacilidade} src={iconeFacilidade} alt="Ícone de facilidade"/>
+                <Image className={estilos.iconeFacilidade} src={iconeFacilidade} alt='Ícone de facilidade'/>
                 <p>SIMPLES ASSIM !</p>
             </div>
 
             <div className={estilos.containerImagemMelhoreSuaCidade}>
-                <Image className={estilos.imagemMelhoreSuaCidade} src={melhoreSuaCidade} />
+                <Image className={estilos.imagemMelhoreSuaCidade} src={melhoreSuaCidade} alt='Pessoa usando o celular para reportar um problema urbano em uma rua'/>
             </div>
 
             <div className={estilos.containerMensagemFinal}>
