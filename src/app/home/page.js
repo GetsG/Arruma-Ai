@@ -14,7 +14,7 @@ export default function Home(){
 const router = useRouter();
 
     function criarSolicitacao(){
-        router.push('/ocorrencias');
+        router.push('/cadastrar_ocorrencia');
     }
 
 
