@@ -15,6 +15,7 @@
 
 .container_topo p{
     padding-bottom: 10px;
+    font-size: 20px;
 }
 
 .container_main{
@@ -33,7 +34,6 @@
     margin: 0 auto 20px;
     border-radius: 20px;
     width: 90%;
-    height: 140px;
     max-width: 400px; /* limite para não ficar gigante no desktop */
     padding: 30px;
 }
@@ -42,7 +42,6 @@
     border: 0px;
     width: 350px;
     font-size: 13px;
-
 }
 
 .categoria h2{
@@ -81,6 +80,20 @@
     background-color: white;
 }
 
+.mostrar_categoria{
+   text-align: center;
+   font-weight: bold;
+   margin: 15px 0 0;
+   color: #2F9D53;
+}
+
+.mensagem_categoria{
+    border: 0px;
+    width: 100%;
+    font-size: 13px;
+    color: #999;
+}
+
 /*-------------------------------
 DESCRIÇÃO: */
 
@@ -94,6 +107,22 @@ DESCRIÇÃO: */
     padding: 30px;
 }
 
+.descricao h2{
+    font-size: 20px;
+}
+
+.descricao input{
+    border: 0px;
+    width: 100%;
+    max-width: 350px;
+    font-size: 13px;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #9999993f;
+    border-radius: 10px;
+    
+}
+
 /*-------------------------------
 IMAGEM: */
 
@@ -102,9 +131,37 @@ IMAGEM: */
     margin: 0 auto 20px;
     border-radius: 20px;
     width: 90%;
-    height: 140px;
+    height: auto;
     max-width: 400px; /* limite para não ficar gigante no desktop */
     padding: 30px;
+}
+
+.imagem h2{
+    font-size: 20px;
+}
+
+.imagem label{
+    display: flex;
+    background-color: #2F9D53;
+    margin: 20px auto;
+    padding: 10px;
+    border-radius: 15px;
+    width: fit-content;
+    color: white;
+    font-weight: bold;
+}
+
+.imagem img{
+    display: flex;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.imagem p{
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    color: rgb(107, 105, 105);
 }
 
 /*-------------------------------
@@ -115,13 +172,91 @@ GRAU INTENSIDADE: */
     margin: 0 auto 20px;
     border-radius: 20px;
     width: 90%;
-    height: 140px;
     max-width: 400px; /* limite para não ficar gigante no desktop */
     padding: 30px;
 }
 
+.grau_intensidade h2{
+    font-size: 20px;
+}
+
+.grau_intensidade_opcoes{
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.grau_intensidade select{
+    border: 0px;
+    text-align: center;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 25px; 
+    height: 25px;
+    background-color: #5e5f5f;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    padding: 0;
+    background-image: url("../../../public/ocorrencias/sinal-de-seta-para-baixo-para-navegar.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 13px;
+    text-indent: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+}   
+
+.grau_intensidade_opcoes option{
+    background-color: white;
+}
+
+.mensagem_grau_intensidade{
+    border: 0px;
+    width: 100%;
+    font-size: 13px;
+    color: #999;
+}
+
+.grau_baixa{
+   text-align: center;
+   font-weight: bold;
+   margin: 15px 0 0;
+   color: #2F9D53;
+}
+
+.grau_media{
+   text-align: center;
+   font-weight: bold;
+   margin: 15px 0 0;
+   color: #c7b513;
+}
+
+.grau_alto{
+    text-align: center;
+   font-weight: bold;
+   margin: 15px 0 0;
+   color: #f00101;
+}
+
+
+
+
+
 /*-------------------------------
 ENDEREÇO: */
+
+.mapa{
+    display: flex;
+    background-color: #2F9D53;
+    margin: 10px auto;
+    padding: 13px;
+    border-radius: 15px;
+    border: 0px;
+    color: white;
+    font-weight: bold;
+}
 
 .endereco{
     background-color: white;
@@ -132,15 +267,25 @@ ENDEREÇO: */
     padding: 30px;
 }
 
+.endereco h2{
+    font-size: 20px;
+}
+
 .endereco label{
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
     width: auto;
-    font-size: 11px;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
 .endereco input{
-    width: 140px;
+    padding: 10px;
+    border: 0px;
+    background-color: #9999993f;
+    border-radius: 10px;
 }
 
 /*-------------------------------
