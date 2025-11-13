@@ -1,18 +1,48 @@
 .container{
-    background-color: rgb(221, 217, 217);
-    border-collapse: separate;
-     border-radius: 20px;
+    display: grid;
+    grid-template-columns: 65% 30%;
+    background-color: rgb(255, 255, 255);
+    width: 95%;
+    max-width: 600px;
+    margin: 0 auto 20px;
+    padding: 10px 10px;
+    border-radius: 20px;
 }
 
-.container td{
+.infos{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
-.status_aberto{
-  color: red;
-  font-weight: bold;
+.status{
+  display: flex;
+  gap: 10px;
 }
 
-.status_fechado{
-  color: green;
-  font-weight: bold;
+.imagemStatus{
+  width: 20px;
+  height: 20px;
+}
+
+.detalhes{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between; /* imagem em cima, botão embaixo */
+    padding: 2px;
+}
+
+.img{
+  width: 100px;
+  height: 100px;
+  background-color: aliceblue;
+}
+
+.verDetalhes{
+  padding: 6px;
+  background-color: #2F9D53;
+  color: white;
+  border: 0px;
+  border-radius: 5px;
 }

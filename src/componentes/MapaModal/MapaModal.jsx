@@ -2,7 +2,7 @@
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { useState } from "react";
-import markerImg from "../../../public/ocorrencias/marker.png";
+import markerImg from "../../../public/criar-ocorrencias/marker.png";
 
 export default function MapaModal({ onSelect }) {
   const [posicao, setPosicao] = useState(null);

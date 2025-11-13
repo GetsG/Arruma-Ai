@@ -9,20 +9,21 @@ export default function Ocorrencia({id, data, tipo, bairro, status, image}){
     return(
     
         <div className={estilos.container}>
-            <div>
-                <p>Protocolo: {id}</p>
-                <p>Ultima atualização: {data}</p>
-                <p>Tipo: {tipo}</p>
-                <p>Bairro: {bairro}</p>
-                <div>
-                    <p>Status: {status}</p>
-                    <Image src={status === "Pendente" ? pendente : status === "Em andamento" ? emAndamento : resolvida} alt="Status da ocorrencia"/>
+            <div className={estilos.infos}>
+                <p><strong>Protocolo: #{id}</strong></p>
+                <p><strong>Ultima atualização:</strong> {data}</p>
+                <p><strong>Tipo:</strong> {tipo}</p>
+                <p><strong>Bairro:</strong> {bairro}</p>
+
+                <div className={estilos.status}>
+                    <p><strong>Status:</strong> {status}</p>
+                    <Image className={estilos.imagemStatus} src={status === "Pendente" ? pendente : status === "Em andamento" ? emAndamento : resolvida} alt="Status da ocorrencia"/>
                 </div>
             </div>
 
-            <div>
-                <Image src={image} alt="Imagem da ocorrencia"/>
-                <button>Ver detalhes</button>
+            <div className={estilos.detalhes}>
+                <Image className={estilos.img} src={pendente} alt="Imagem da ocorrencia"/>
+                <button className={estilos.verDetalhes}>Ver detalhes</button>
             </div>
         </div>
 

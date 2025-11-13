@@ -1,5 +1,6 @@
 'use client'
-import estilos from "./ocorrencias.module.css"
+
+import estilos from "./cadastrar_ocorrencia.module.css"
 import Nav from "../../componentes/Nav/Nav.jsx"
 import {useState} from "react"
 import dynamic from "next/dynamic";
