@@ -2,7 +2,12 @@
 import estilos from "./ocorrencias.module.css"
 import Nav from "../../componentes/Nav/Nav.jsx"
 import {useState} from "react"
-import MapaModal from "../../componentes/MapaModal/MapaModal.jsx";
+import dynamic from "next/dynamic";
+
+const MapaModal = dynamic(
+  () => import("../../componentes/MapaModal/MapaModal.jsx"),
+  { ssr: false }
+);
 
 export default function Ocorrencias(){
 
@@ -19,6 +24,8 @@ const [complemento, setComplemento] = useState("");
 const [bairro, setBairro] = useState("");
 const [cidade, setCidade] = useState("");
 const [estado, setEstado] = useState("");
+
+
 
   function handleFileChange(e) {
     const file = e.target.files[0]; // pega a primeira imagem escolhida
