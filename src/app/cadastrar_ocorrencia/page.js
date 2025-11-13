@@ -57,8 +57,6 @@ function handleSubmit(e) {
     });
   }
 
-
-
     return(
         <>
         <div className={estilos.container}>
@@ -81,9 +79,11 @@ function handleSubmit(e) {
                                 <label htmlFor="categoria">
                                     <select id="categoria" onChange={(e) => setCategoria(e.target.value)}> aa
                                         <option></option>
-                                        <option value="Buraco na Via">Buraco na Via</option>
-                                        <option value="Iluminação Pública">Iluminação pública</option>
-                                        <option value="Semáforo">Semáforo</option>
+                                        <option value="Buraco na Via">Buraco na rua</option>
+                                        <option value="Luz da rua queimada">Luz da rua queimada</option>
+                                        <option value="Semáforo quebrado">Semáforo quebrado</option>
+                                        <option value="Árvore caída">Árvore caída</option>
+                                        <option value="Vazamento na rua">Vazamento na rua</option>
                                     </select>
                                 </label>
                             </div>
@@ -228,7 +228,7 @@ function handleSubmit(e) {
       borderRadius: "10px"
     }}>
       <MapaModal onSelect={handleEnderecoSelecionado} />
-      <button onClick={() => setShowMapa(false)}>Fechar</button>
+      <button className={estilos.fecharMapa} onClick={() => setShowMapa(false)}>Fechar</button>
     </div>
 
   </div>

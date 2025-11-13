@@ -1,13 +1,30 @@
 import estilos from "./ocorrencia.module.css";
+import Image from "next/image";
 
-export default function Ocorrencia({id, descricao, categoria, status}){
+import pendente from "./Icones/pendente.png"
+import emAndamento from "./Icones/emAndamento.png"
+import resolvida from "./Icones/resolvida.png"
+
+export default function Ocorrencia({id, data, tipo, bairro, status, image}){
     return(
     
-        <tr className={estilos.container}>
-            <td className={status === "Aberto" ? estilos.status_aberto : estilos.status_fechado}>{status}</td>
-            <td>{descricao}</td>
-            <td>{categoria}</td>
-        </tr>
+        <div className={estilos.container}>
+            <div>
+                <p>Protocolo: {id}</p>
+                <p>Ultima atualização: {data}</p>
+                <p>Tipo: {tipo}</p>
+                <p>Bairro: {bairro}</p>
+                <div>
+                    <p>Status: {status}</p>
+                    <Image src={status === "Pendente" ? pendente : status === "Em andamento" ? emAndamento : resolvida} alt="Status da ocorrencia"/>
+                </div>
+            </div>
+
+            <div>
+                <Image src={image} alt="Imagem da ocorrencia"/>
+                <button>Ver detalhes</button>
+            </div>
+        </div>
 
         
     );

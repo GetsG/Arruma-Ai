@@ -301,3 +301,16 @@ ENVIAR: */
     margin: 0 auto 80px;
     border: 0px;
 }
+
+.fecharMapa{
+    display: flex;
+    padding: 10px 40px;
+    text-align: center;
+    justify-self: center;
+    margin: 15px 0 0;
+    border: 0px;
+    background-color: #2F9D53;
+    color: white;
+    font-weight: bold;
+    border-radius: 20px;
+}
