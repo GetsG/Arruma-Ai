@@ -22,7 +22,7 @@ export default function Ocorrencia({id, data, tipo, bairro, status, image}){
             </div>
 
             <div className={estilos.detalhes}>
-                <Image className={estilos.img} src={pendente} alt="Imagem da ocorrencia"/>
+                <Image className={estilos.img} src={image} alt="Imagem da ocorrencia"/>
                 <button className={estilos.verDetalhes}>Ver detalhes</button>
             </div>
         </div>

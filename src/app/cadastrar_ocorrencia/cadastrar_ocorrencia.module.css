@@ -149,6 +149,7 @@ IMAGEM: */
     width: fit-content;
     color: white;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .imagem img{
@@ -256,6 +257,7 @@ ENDEREÇO: */
     border: 0px;
     color: white;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .endereco{
@@ -300,6 +302,7 @@ ENVIAR: */
     border-radius: 10px;
     margin: 0 auto 80px;
     border: 0px;
+    cursor: pointer;
 }
 
 .fecharMapa{
@@ -313,4 +316,61 @@ ENVIAR: */
     color: white;
     font-weight: bold;
     border-radius: 20px;
+}
+
+.erroPopup {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ff4d4d;
+  color: #fff;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+  z-index: 9999;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  animation: fadeIn 0.2s ease;
+  width: 80%;
+  max-width: 300px;
+}
+
+.erroPopup ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.erroPopup li {
+  margin: 0px 0 3px;
+}
+
+.sucessoPopup {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2F9D53;
+  color: #fff;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+  z-index: 9999;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: fadeIn 0.2s ease;
+}
+
+.erroPopupClose {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1;
 }
