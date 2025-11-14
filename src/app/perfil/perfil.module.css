@@ -1,0 +1,27 @@
+.container{
+    background-color: #2F9D53;
+
+}
+
+.container_topo{
+    background-color: #2F9D53;
+    padding: 20px 0;
+    text-align: center;
+    color: white;
+}
+
+.container_topo h1{
+    padding: 10px 0;
+}
+
+.container_topo p{
+    padding-bottom: 10px;
+    font-size: 20px;
+}
+
+.opcoes{
+    background-color: #D9D9D9;
+    justify-items: center;
+    padding: 20px 0 60px 0;
+}
+

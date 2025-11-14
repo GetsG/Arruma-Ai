@@ -218,9 +218,6 @@ export default function Ocorrencias() {
 
   const hasErrors = errorMessages.length > 0;
 
-  // -------------------------------------------
-  // JSX (return) continua igual
-  // -------------------------------------------
   return (
     <>
       {/* POPUP GLOBAL DE ERROS */}
