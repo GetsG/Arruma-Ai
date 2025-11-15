@@ -71,16 +71,19 @@
     align-content: center;
     margin: 0 auto;
     text-align: center;
+    color: black;
 }
 
 .conteudo h2{
     margin-bottom: 10px;
     margin-right: 20px;
+    color: black;
 }
 
 .conteudo p{
     margin-bottom: 20px;
     margin-right: 20px;
+    color: black;
 }
 
 .icones{

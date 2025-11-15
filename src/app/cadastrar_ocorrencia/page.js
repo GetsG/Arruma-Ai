@@ -412,12 +412,16 @@ export default function Ocorrencias() {
                   id="logradouro"
                   type="text"
                   {...register("logradouro", { required: "Informe o logradouro" })}
+                  maxLength={100}
                 />
               </label>
 
               <label htmlFor="complemento">
                 Complemento :
-                <input id="complemento" type="text" {...register("complemento")} />
+                <input id="complemento" type="text" {...register("complemento")} 
+                maxLength={50}
+                />
+                
               </label>
 
               <label htmlFor="bairro">
@@ -426,6 +430,7 @@ export default function Ocorrencias() {
                   id="bairro"
                   type="text"
                   {...register("bairro", { required: "Informe o bairro" })}
+                  maxLength={100}
                 />
               </label>
 
@@ -435,6 +440,7 @@ export default function Ocorrencias() {
                   id="cidade"
                   type="text"
                   {...register("cidade", { required: "Informe a cidade" })}
+                  maxLength={50}
                 />
               </label>
 
@@ -444,6 +450,7 @@ export default function Ocorrencias() {
                   id="estado"
                   type="text"
                   {...register("estado", { required: "Informe o estado" })}
+                  maxLength={50}
                 />
               </label>
             </div>

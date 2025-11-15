@@ -11,11 +11,11 @@ import Image from "next/image";
 export default function Ocorrencias(){
     const router = useRouter();
 
-    const ocorrencias = [/*
+    const ocorrencias = [
     {id: 1, data: "27/05/2025", tipo: "Buraco em via", bairro: "Cidade Jardim", status: "Pendente"},
     {id: 2, data: "27/05/2025", tipo: "Cabos rompidos", bairro: "Campinas", status: "Em andamento" },
     {id: 3, data: "20/04/2025", tipo: "Lixo e entulho", bairro: "Jardim Europa", status: "Resolvido" },
-*/];
+];
 
     return(
         <>
