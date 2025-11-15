@@ -69,6 +69,11 @@ function getClasseIntensidade(intensidade, estilos) {
 // Componente
 // ---------------------------------------------
 export default function Ocorrencias() {
+
+  
+
+
+
   const router = useRouter();
 
   const [showMapa, setShowMapa] = useState(false);
@@ -88,11 +93,20 @@ export default function Ocorrencias() {
     reValidateMode: "onChange",
   });
 
+  const descricao = watch("descricao") || "";
   const categoria = watch("categoria");
   const intensidade = watch("intensidade");
   const imagemFiles = watch("imagem");
-  const imagemPreview =
-    imagemFiles && imagemFiles.length > 0 ? imagemFiles[0] : null;
+  const imagemPreview = imagemFiles && imagemFiles.length > 0 ? imagemFiles[0] : null;
+
+
+  //CONTADOR DE CARACTER
+  const limite = 50;
+
+  function handleDescricaoChange(e) {
+    const texto = e.target.value.slice(0, limite);
+    setValue("descricao", texto, { shouldValidate: true });
+  }
 
   // -------------------------------------------
   // Preenche endereço e limpa erros de endereço
@@ -293,6 +307,7 @@ export default function Ocorrencias() {
             </div>
             {/*--------------------------------*/}
 
+
             {/* DESCRIÇÃO */}
             <div className={estilos.descricao}>
               <h2>Descrição</h2>
@@ -302,7 +317,13 @@ export default function Ocorrencias() {
                   type="text"
                   placeholder="Preencha com o seu relato ou denúncia"
                   {...register("descricao", { required: "Descrição é obrigatória" })}
+                  maxLength={50}
                 />
+
+                <p className={estilos.contador}>
+                {descricao.length} / {limite} caracteres
+                </p>
+  
               </label>
             </div>
             {/*--------------------------------*/}
@@ -316,7 +337,6 @@ export default function Ocorrencias() {
               <input
                 id="imagem"
                 type="file"
-                accept="image/*"
                 style={{ display: "none" }}
                 {...register("imagem", {
                   required: "Anexe uma imagem para ajudar na solicitação",
