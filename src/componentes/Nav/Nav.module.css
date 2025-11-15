@@ -1,4 +1,4 @@
-.nav{
+.nav {
     background-color: #2F9D53;
     position: fixed;
     left: 0;
@@ -7,16 +7,16 @@
     width: 100%;
     height: var(--footer-h);
     max-width: 100%;
-    align-content: center;
-    will-change: transform;
-    contain: paint;
+    display: flex;          
+    justify-content: center;    
+    padding-bottom: env(safe-area-inset-bottom); 
 }
 
 .nav nav{
     display: flex;
     padding: 10px 0;
-    justify-self: center;
     align-items: center;
+    justify-content: center;  
     gap: 35px;
 }
 
