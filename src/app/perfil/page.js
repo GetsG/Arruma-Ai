@@ -18,6 +18,14 @@ export default function Perfil() {
   const router = useRouter();
   const [carregando, setCarregando] = useState(true);
 
+  function logout() {
+  localStorage.removeItem("arrumaai_token");
+  localStorage.removeItem("arrumaai_userId");
+  localStorage.clear(); // opcional, limpa TUDO
+
+  router.replace("/logar");
+}
+
   useEffect(() => {
     const token = localStorage.getItem("arrumaai_token");
 
@@ -84,13 +92,13 @@ export default function Perfil() {
           />
 
           <CardPerfil
-            caminho={"/logar"}
+            onClick={logout}
             image={encerrar}
             infoImage={"Encerramento da Sessão"}
             titulo={"Encerramento da Sessão"}
             info={"Sessão e Conta"}
-            descricao={"Finalize sua sessão ou exclua sua conta."}
-          />
+            descricao={"Finalize sua sessão."}
+/>
         </div>
       </div>
 
