@@ -7,8 +7,11 @@
     gap: 20px;
     margin: 50px auto;
     width: 370px;
-    padding: 15px;
-    
+    padding: 15px; 
+}
+
+.campo{
+    margin-bottom: 20px;
 }
 
 .container h1{
@@ -69,3 +72,29 @@
     border: 1px solid black;
 }
 
+.erro {
+  color: #ff4d4d;        /* vermelho suave */
+  font-size: 0.75rem;    /* igual o da outra página */
+  display: block;
+  padding-left: 2px;
+}
+
+.mensagemSucesso {
+  background-color: #dfffe4;
+  border: 1px solid #2f9d53;
+  color: #1e6b38;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.mensagemErroGeral {
+  background-color: #ffe0e0;
+  border: 1px solid #ff4d4d;
+  color: #b30000;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}

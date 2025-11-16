@@ -1,10 +1,36 @@
+"use client";
+
 import estilos from "./notificacoes.module.css"
 import semNotificacao from "../../../public/notificacoes/semNotificacao.png"
 import Image from "next/image";
 import Nav from "../../componentes/Nav/Nav.jsx"
 import CardNotificacoes from "../../componentes/CardNotificacoes/Notificacoes.jsx"
+import Carregando from "../../componentes/Carregando/Carregando";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Notificacoes(){
+    const router = useRouter();
+
+    const [carregando, setCarregando] = useState(true);
+
+      useEffect(() => {
+        const token = localStorage.getItem("arrumaai_token");
+    
+        // se não tiver token, manda pro login
+        if (!token) {
+          router.replace("/logar");
+          return;
+        }
+    
+        setCarregando(false);
+      }, [router]);
+    
+      if (carregando) {
+        return (
+              <Carregando/>
+        );
+      }
 
         const notificacoes = [
     {id: 1, titulo: "Sua solicitação foi atualizada !", descricao: "A solicitação de buraco na Rua 7 agora está em andamento.", data: "Hoje, 14:22"},
@@ -13,6 +39,7 @@ export default function Notificacoes(){
     {id: 4, titulo: "Solicitação recusada", descricao: "Não foi possível confirmar o problema reportado.", data: "13/05 às 20:15"},
     {id: 5, titulo: "Agradecemos sua contribuição", descricao: "Obrigado por ajudar a melhorar sua cidade com o Arruma Aí!", data: "12/05 às 16:40"},
 ];
+
 
     return(
         <>

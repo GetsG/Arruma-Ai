@@ -338,6 +338,10 @@ ENVIAR: */
   max-width: 300px;
 }
 
+.erroPopup > div {
+  flex: 1; /* ocupa todo o espaço e empurra o X para a direita */
+}
+
 .erroPopup ul {
   margin: 4px 0 0;
   padding-left: 18px;
@@ -373,6 +377,10 @@ ENVIAR: */
   font-weight: bold;
   cursor: pointer;
   line-height: 1;
+
+  align-self: flex-start; /* fica colado no topo da caixinha */
+  margin-left: 8px;       /* distância da borda direita do texto */
+  margin-top: -4px;       /* sobe um pouquinho para alinhar melhor */
 }
 
 .campoDescricao {

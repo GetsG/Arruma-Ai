@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { useForm } from "react-hook-form";
 
 import estilos from "./cadastrar_ocorrencia.module.css";
 import Nav from "../../componentes/Nav/Nav.jsx";
+import Carregando from "../../componentes/Carregando/Carregando.jsx";
 
 const MapaModal = dynamic(
   () => import("../../componentes/MapaModal/MapaModal.jsx"),
@@ -14,45 +15,12 @@ const MapaModal = dynamic(
 );
 
 // ---------------------------------------------
-// Modelo da ocorrência
-// ---------------------------------------------
-class Ocorrencia {
-  constructor({
-    categoria,
-    descricao,
-    intensidade,
-    cep,
-    logradouro,
-    complemento,
-    bairro,
-    cidade,
-    estado,
-    imagemBase64,
-  }) {
-    this.categoria = categoria;
-    this.descricao = descricao;
-    this.intensidade = intensidade;
-    this.cep = cep;
-    this.logradouro = logradouro;
-    this.complemento = complemento;
-    this.bairro = bairro;
-    this.cidade = cidade;
-    this.estado = estado;
-    this.imagem = imagemBase64; // string base64 para o banco
-  }
-
-  toJSON() {
-    return { ...this };
-  }
-}
-
-// ---------------------------------------------
-// Helpers puros
+// Helpers
 // ---------------------------------------------
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result); // base64
+    reader.onload = () => resolve(reader.result);
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -69,16 +37,17 @@ function getClasseIntensidade(intensidade, estilos) {
 // Componente
 // ---------------------------------------------
 export default function Ocorrencias() {
-
-  
-
-
-
   const router = useRouter();
 
   const [showMapa, setShowMapa] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+
+  const [carregando, setCarregando] = useState(true);
+  const [userId, setUserId] = useState(""); // só pra garantir que está logado
+
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
 
   const {
     register,
@@ -97,10 +66,10 @@ export default function Ocorrencias() {
   const categoria = watch("categoria");
   const intensidade = watch("intensidade");
   const imagemFiles = watch("imagem");
-  const imagemPreview = imagemFiles && imagemFiles.length > 0 ? imagemFiles[0] : null;
+  const imagemPreview =
+    imagemFiles && imagemFiles.length > 0 ? imagemFiles[0] : null;
 
-
-  //CONTADOR DE CARACTER
+  // contador de caracteres
   const limite = 50;
 
   function handleDescricaoChange(e) {
@@ -109,7 +78,7 @@ export default function Ocorrencias() {
   }
 
   // -------------------------------------------
-  // Preenche endereço e limpa erros de endereço
+  // Preenche endereço e limpa erros
   // -------------------------------------------
   function preencherEndereco({
     cep,
@@ -139,6 +108,15 @@ export default function Ocorrencias() {
       cidade: end.cidade,
       estado: end.estado,
     });
+
+    // coord do mapa
+    setLatitude(end.latitude || "");
+    setLongitude(end.longitude || "");
+
+    // se quiser, também joga nos campos escondidos
+    setValue("latitude", end.latitude || "");
+    setValue("longitude", end.longitude || "");
+
     setShowMapa(false);
   }
 
@@ -163,63 +141,101 @@ export default function Ocorrencias() {
   }
 
   function handleCepChange(e) {
-    const apenasNumeros = e.target.value
-      .replace(/\D/g, "")
-      .slice(0, 8); // máximo 8 dígitos
+    const apenasNumeros = e.target.value.replace(/\D/g, "").slice(0, 8);
     setValue("cep", apenasNumeros, { shouldValidate: true });
   }
 
   // -------------------------------------------
-  // Submit VÁLIDO
-  // (API ainda é só "best effort", não bloqueia UX)
+  // SUBMIT VÁLIDO
   // -------------------------------------------
   async function onSubmit(data) {
-    setShowErrorPopup(false);
-    setShowSuccessPopup(true);
+    console.log("=== SUBMIT DISPARADO ===");
+    console.log("Dados do formulário:", data);
 
+    setShowErrorPopup(false);
+    setShowSuccessPopup(false);
+
+    // imagem -> base64
     const file = data.imagem?.[0];
     const imagemBase64 = file ? await fileToBase64(file) : null;
+    const imagens = imagemBase64 ? [imagemBase64] : [];
 
-    const ocorrencia = new Ocorrencia({
-      categoria: data.categoria,
+    // categoriaid numérico
+    const categoriaid = Number(data.categoria); // "1" -> 1
+
+    // latitude/longitude (preferem do mapa)
+    const lat = latitude || data.latitude || "";
+    const lon = longitude || data.longitude || "";
+
+    const payload = {
       descricao: data.descricao,
-      intensidade: data.intensidade,
-      cep: data.cep,
-      logradouro: data.logradouro,
-      complemento: data.complemento,
-      bairro: data.bairro,
-      cidade: data.cidade,
-      estado: data.estado,
-      imagemBase64,
-    });
+      categoriaid,
+      latitude: lat,
+      longitude: lon,
+      rua: data.logradouro || "",
+      ponto_referencia: data.complemento || "",
+      imagens,
+    };
 
-    console.log("Enviando para o backend:", ocorrencia);
+    console.log("PAYLOAD ENVIADO PARA /problems:", payload);
 
-    // Chama API sem travar fluxo de sucesso
-    fetch("http://localhost:8080/ocorrencias", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(ocorrencia.toJSON()),
-    })
-      .then((res) => {
-        console.log("Status da API:", res.status);
-      })
-      .catch((err) => {
-        console.error("Erro ao chamar API:", err);
-      });
+    try {
+  const token = localStorage.getItem("arrumaai_token");
 
-    reset();
-
-    // mostra popup e depois troca rota
-    setTimeout(() => {
-      router.push("/ocorrencias");
-    }, 1500);
+  if (!token) {
+    // segurança extra: se por algum motivo não tiver token aqui
+    router.replace("/logar");
+    return;
   }
 
+  const res = await fetch("https://arruma-ai-api.onrender.com/problem", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  let body = null;
+  try {
+    body = await res.json();
+  } catch (e) {
+    // caso a resposta não seja JSON
+  }
+
+  console.log("STATUS /problem:", res.status);
+  console.log("RESPOSTA /problem:", body);
+
+  if (res.status === 401 || res.status === 403) {
+    // token inválido/expirado: limpa e manda pro login
+    localStorage.removeItem("arrumaai_token");
+    localStorage.removeItem("arrumaai_userId");
+    router.replace("/logar");
+    return;
+  }
+
+  if (!res.ok) {
+    setShowErrorPopup(true);
+    return;
+  }
+
+  setShowSuccessPopup(true);
+  reset();
+
+  setTimeout(() => {
+    router.push("/ocorrencias");
+  }, 1500);
+} catch (err) {
+  console.error("Erro ao chamar API /problem:", err);
+  setShowErrorPopup(true);
+}}
+
   // -------------------------------------------
-  // Submit INVÁLIDO (erros de formulário)
+  // SUBMIT INVÁLIDO
   // -------------------------------------------
-  function onInvalid() {
+  function onInvalid(errors) {
+    console.log("Erros de validação:", errors);
     setShowSuccessPopup(false);
     setShowErrorPopup(true);
   }
@@ -231,6 +247,24 @@ export default function Ocorrencias() {
     .filter(Boolean);
 
   const hasErrors = errorMessages.length > 0;
+
+  // Proteção de rota
+  useEffect(() => {
+    const token = localStorage.getItem("arrumaai_token");
+
+    if (!token) {
+      router.replace("/logar");
+      return;
+    }
+
+    const id = localStorage.getItem("arrumaai_userId") || "";
+    setUserId(id);
+    setCarregando(false);
+  }, [router]);
+
+  if (carregando) {
+    return <Carregando />;
+  }
 
   return (
     <>
@@ -292,21 +326,33 @@ export default function Ocorrencias() {
                 <label htmlFor="categoria">
                   <select
                     id="categoria"
-                    {...register("categoria", { required: "Escolha uma categoria" })}
+                    {...register("categoria", {
+                      required: "Escolha uma categoria",
+                    })}
                   >
                     <option value=""></option>
-                    <option value="Buraco na Via">Buraco na rua</option>
-                    <option value="Luz da rua queimada">Luz da rua queimada</option>
-                    <option value="Semáforo quebrado">Semáforo quebrado</option>
-                    <option value="Árvore caída">Árvore caída</option>
-                    <option value="Vazamento na rua">Vazamento na rua</option>
+                    <option value="1">Infraestrutura</option>
+                    <option value="2">Iluminação Pública</option>
+                    <option value="3">Saneamento</option>
+                    <option value="4">Segurança</option>
+                    <option value="5">Transporte</option>
                   </select>
                 </label>
               </div>
-              <p className={estilos.mostrar_categoria}>{categoria}</p>
+              <p className={estilos.mostrar_categoria}>
+                {categoria === "1"
+                  ? "Infraestrutura"
+                  : categoria === "2"
+                  ? "Iluminação Pública"
+                  : categoria === "3"
+                  ? "Saneamento"
+                  : categoria === "4"
+                  ? "Segurança"
+                  : categoria === "5"
+                  ? "Transporte"
+                  : ""}
+              </p>
             </div>
-            {/*--------------------------------*/}
-
 
             {/* DESCRIÇÃO */}
             <div className={estilos.descricao}>
@@ -316,17 +362,17 @@ export default function Ocorrencias() {
                   id="descricao"
                   type="text"
                   placeholder="Preencha com o seu relato ou denúncia"
-                  {...register("descricao", { required: "Descrição é obrigatória" })}
+                  {...register("descricao", {
+                    required: "Descrição é obrigatória",
+                  })}
                   maxLength={50}
+                  onChange={handleDescricaoChange}
                 />
-
                 <p className={estilos.contador}>
-                {descricao.length} / {limite} caracteres
+                  {descricao.length} / {limite} caracteres
                 </p>
-  
               </label>
             </div>
-            {/*--------------------------------*/}
 
             {/* IMAGEM */}
             <div className={estilos.imagem}>
@@ -353,9 +399,8 @@ export default function Ocorrencias() {
 
               <p>Anexe foto para ajudar na solicitação</p>
             </div>
-            {/*--------------------------------*/}
 
-            {/* GRAU INTENSIDADE */}
+            {/* GRAU INTENSIDADE (visual) */}
             <div className={estilos.grau_intensidade}>
               <h2>Grau de intensidade</h2>
               <div className={estilos.grau_intensidade_opcoes}>
@@ -380,7 +425,6 @@ export default function Ocorrencias() {
 
               <p className={classeIntensidade}>{intensidade}</p>
             </div>
-            {/*--------------------------------*/}
 
             {/* ENDEREÇO */}
             <div className={estilos.endereco}>
@@ -411,17 +455,21 @@ export default function Ocorrencias() {
                 <input
                   id="logradouro"
                   type="text"
-                  {...register("logradouro", { required: "Informe o logradouro" })}
+                  {...register("logradouro", {
+                    required: "Informe o logradouro",
+                  })}
                   maxLength={100}
                 />
               </label>
 
               <label htmlFor="complemento">
                 Complemento :
-                <input id="complemento" type="text" {...register("complemento")} 
-                maxLength={50}
+                <input
+                  id="complemento"
+                  type="text"
+                  {...register("complemento")}
+                  maxLength={50}
                 />
-                
               </label>
 
               <label htmlFor="bairro">
@@ -454,7 +502,10 @@ export default function Ocorrencias() {
                 />
               </label>
             </div>
-            {/*--------------------------------*/}
+
+            {/* ocultos para debug se quiser usar no form */}
+            <input type="hidden" {...register("latitude")} />
+            <input type="hidden" {...register("longitude")} />
 
             <button className={estilos.enviar} type="submit">
               Enviar Solicitação

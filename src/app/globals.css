@@ -9,3 +9,11 @@
 body, main {
   padding-bottom: calc(var(--footer-h) + max(env(safe-area-inset-bottom), 8px));
 }
+
+/* Remove o olhinho/reveal padrão dos inputs de senha globalmente */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-clear-button,
+input[type="password"]::-webkit-reveal-button {
+  display: none;
+}
