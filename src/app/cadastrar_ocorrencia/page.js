@@ -49,8 +49,9 @@ export default function Ocorrencias() {
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
 
-  // NOVO: flag pra saber se está buscando coordenadas
+  // flag pra saber se está buscando coordenadas
   const [carregandoCoords, setCarregandoCoords] = useState(false);
+  // mensagem de erro vinda da API / servidor
   const [apiErrorMessage, setApiErrorMessage] = useState("");
 
   const {
@@ -350,14 +351,25 @@ export default function Ocorrencias() {
       }
 
       if (!res.ok) {
-        // tenta mostrar mensagem da API se tiver
-        if (body && body.message) {
+        // erro 5xx -> problema no servidor
+        if (res.status >= 500) {
+          setApiErrorMessage(
+            "O servidor encontrou um problema ao salvar sua solicitação. Tente novamente em alguns minutos."
+          );
+        } else if (body && body.message) {
+          // erro 4xx com mensagem da API
           setApiErrorMessage(body.message);
+        } else {
+          setApiErrorMessage(
+            "Não foi possível enviar sua solicitação. Tente novamente."
+          );
         }
+
         setShowErrorPopup(true);
         return;
       }
 
+      // sucesso
       setShowSuccessPopup(true);
       reset();
       setLatitude("");
@@ -386,12 +398,19 @@ export default function Ocorrencias() {
 
   const classeIntensidade = getClasseIntensidade(intensidade, estilos);
 
-  const errorMessages = [
-    ...Object.values(errors)
-      .map((err) => err?.message)
-      .filter(Boolean),
-    ...(apiErrorMessage ? [apiErrorMessage] : []),
-  ];
+  // mensagens de erros de campos
+  const fieldErrorMessages = Object.values(errors)
+    .map((err) => err?.message)
+    .filter(Boolean);
+
+  // flag: tem erro de campo?
+  const temErrosCampos = fieldErrorMessages.length > 0;
+
+  // array final de mensagens pro popup
+  const errorMessages = [...fieldErrorMessages];
+  if (apiErrorMessage) {
+    errorMessages.push(apiErrorMessage);
+  }
 
   const hasErrors = errorMessages.length > 0;
 
@@ -419,7 +438,11 @@ export default function Ocorrencias() {
       {hasErrors && showErrorPopup && (
         <div className={estilos.erroPopup}>
           <div>
-            <strong>Verifique os campos:</strong>
+            <strong>
+              {temErrosCampos
+                ? "Verifique os campos:"
+                : "Ocorreu um erro ao enviar sua solicitação:"}
+            </strong>
             <ul>
               {errorMessages.map((msg, idx) => (
                 <li key={idx}>{msg}</li>
@@ -513,8 +536,7 @@ export default function Ocorrencias() {
                     required: "Descrição é obrigatória",
                     minLength: {
                       value: 5,
-                      message:
-                        "A descrição deve ter pelo menos 5 caracteres",
+                      message: "A descrição deve ter pelo menos 5 caracteres",
                     },
                   })}
                   maxLength={50}
