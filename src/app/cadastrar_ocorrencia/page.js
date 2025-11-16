@@ -44,7 +44,7 @@ export default function Ocorrencias() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const [carregando, setCarregando] = useState(true);
-  const [userId, setUserId] = useState(""); // só pra garantir que está logado
+  const [userId, setUserId] = useState("");
 
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
@@ -57,6 +57,7 @@ export default function Ocorrencias() {
     watch,
     reset,
     clearErrors,
+    setError,
   } = useForm({
     mode: "onSubmit",
     reValidateMode: "onChange",
@@ -69,12 +70,94 @@ export default function Ocorrencias() {
   const imagemPreview =
     imagemFiles && imagemFiles.length > 0 ? imagemFiles[0] : null;
 
-  // contador de caracteres
   const limite = 50;
 
   function handleDescricaoChange(e) {
     const texto = e.target.value.slice(0, limite);
     setValue("descricao", texto, { shouldValidate: true });
+  }
+
+  // -------------------------------------------
+  // Geocodificação: endereço -> latitude/longitude
+  // -------------------------------------------
+  async function buscarCoordenadasPorEndereco({
+    logradouro,
+    bairro,
+    cidade,
+    estado,
+  }) {
+    try {
+      // monta uma string de endereço
+      const query = encodeURIComponent(
+        `${logradouro}, ${bairro}, ${cidade} - ${estado}, Brasil`
+      );
+
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`,
+        {
+          headers: {
+            // boa prática do Nominatim: identificar a aplicação
+            "User-Agent": "ArrumaAi-TCC-Front",
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (Array.isArray(data) && data.length > 0) {
+        const lat = data[0].lat;
+        const lon = data[0].lon;
+
+        // salva no state
+        setLatitude(lat);
+        setLongitude(lon);
+
+        // e nos campos escondidos do form
+        setValue("latitude", lat, { shouldValidate: true });
+        setValue("longitude", lon, { shouldValidate: true });
+
+        // limpa erros relacionados a coordenadas
+        clearErrors(["latitude", "longitude"]);
+
+        console.log("COORDENADAS ENCONTRADAS:", lat, lon);
+      } else {
+        // não encontrou o endereço
+        setLatitude("");
+        setLongitude("");
+        setValue("latitude", "", { shouldValidate: true });
+        setValue("longitude", "", { shouldValidate: true });
+
+        setError("latitude", {
+          type: "manual",
+          message:
+            "Não foi possível localizar automaticamente. Marque o local no mapa.",
+        });
+        setError("longitude", {
+          type: "manual",
+          message:
+            "Não foi possível localizar automaticamente. Marque o local no mapa.",
+        });
+        setShowErrorPopup(true);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar coordenadas:", err);
+      setLatitude("");
+      setLongitude("");
+      setValue("latitude", "", { shouldValidate: true });
+      setValue("longitude", "", { shouldValidate: true });
+
+      setError("latitude", {
+        type: "manual",
+        message:
+          "Erro ao localizar endereço. Marque o local no mapa para continuar.",
+      });
+      setError("longitude", {
+        type: "manual",
+        message:
+          "Erro ao localizar endereço. Marque o local no mapa para continuar.",
+      });
+      setShowErrorPopup(true);
+    }
   }
 
   // -------------------------------------------
@@ -100,42 +183,58 @@ export default function Ocorrencias() {
 
   // endereço vindo do mapa
   function handleEnderecoSelecionado(end) {
-    preencherEndereco({
-      cep: end.cep,
-      logradouro: end.logradouro,
-      numero: end.numero,
-      bairro: end.bairro,
-      cidade: end.cidade,
-      estado: end.estado,
-    });
+  preencherEndereco({
+    cep: end.cep,
+    logradouro: end.logradouro,
+    numero: end.numero,
+    bairro: end.bairro,
+    cidade: end.cidade,
+    estado: end.estado,
+  });
 
-    // coord do mapa
-    setLatitude(end.latitude || "");
-    setLongitude(end.longitude || "");
+  // força string
+  const lat = end.latitude != null ? String(end.latitude) : "";
+  const lon = end.longitude != null ? String(end.longitude) : "";
 
-    // se quiser, também joga nos campos escondidos
-    setValue("latitude", end.latitude || "");
-    setValue("longitude", end.longitude || "");
+  setLatitude(lat);
+  setLongitude(lon);
 
-    setShowMapa(false);
-  }
+  setValue("latitude", lat, { shouldValidate: true });
+  setValue("longitude", lon, { shouldValidate: true });
 
-  // CEP digitado manualmente: só números + ViaCEP
+  clearErrors(["latitude", "longitude"]);
+
+  setShowMapa(false);
+}
+
+  // CEP digitado manualmente: só números + ViaCEP + geocodificação
   async function buscarCep(e) {
     const cep = e.target.value.replace(/\D/g, "");
     if (cep.length === 8) {
-      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-      const dados = await res.json();
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const dados = await res.json();
 
-      if (!dados.erro) {
-        preencherEndereco({
-          cep,
-          logradouro: dados.logradouro,
-          numero: "",
-          bairro: dados.bairro,
-          cidade: dados.localidade,
-          estado: dados.uf,
-        });
+        if (!dados.erro) {
+          preencherEndereco({
+            cep,
+            logradouro: dados.logradouro,
+            numero: "",
+            bairro: dados.bairro,
+            cidade: dados.localidade,
+            estado: dados.uf,
+          });
+
+          // tenta obter latitude/longitude pelo endereço
+          await buscarCoordenadasPorEndereco({
+            logradouro: dados.logradouro,
+            bairro: dados.bairro,
+            cidade: dados.localidade,
+            estado: dados.uf,
+          });
+        }
+      } catch (err) {
+        console.error("Erro ao buscar CEP:", err);
       }
     }
   }
@@ -149,87 +248,100 @@ export default function Ocorrencias() {
   // SUBMIT VÁLIDO
   // -------------------------------------------
   async function onSubmit(data) {
-    console.log("=== SUBMIT DISPARADO ===");
-    console.log("Dados do formulário:", data);
+  console.log("=== SUBMIT DISPARADO ===");
+  console.log("Dados do formulário:", data);
 
-    setShowErrorPopup(false);
-    setShowSuccessPopup(false);
+  setShowErrorPopup(false);
+  setShowSuccessPopup(false);
 
-    // imagem -> base64
-    const file = data.imagem?.[0];
-    const imagemBase64 = file ? await fileToBase64(file) : null;
-    const imagens = imagemBase64 ? [imagemBase64] : [];
+  // garante que temos coordenadas (CEP+geocode ou mapa)
+  const lat = data.latitude || latitude;
+  const lon = data.longitude || longitude;
 
-    // categoriaid numérico
-    const categoriaid = Number(data.categoria); // "1" -> 1
-
-    // latitude/longitude (preferem do mapa)
-    const lat = latitude || data.latitude || "";
-    const lon = longitude || data.longitude || "";
-
-    const payload = {
-      descricao: data.descricao,
-      categoriaid,
-      latitude: lat,
-      longitude: lon,
-      rua: data.logradouro || "",
-      ponto_referencia: data.complemento || "",
-      imagens,
-    };
-
-    console.log("PAYLOAD ENVIADO PARA /problems:", payload);
-
-    try {
-  const token = localStorage.getItem("arrumaai_token");
-
-  if (!token) {
-    // segurança extra: se por algum motivo não tiver token aqui
-    router.replace("/logar");
-    return;
-  }
-
-  const res = await fetch("https://arruma-ai-api.onrender.com/problem", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
-  });
-
-  let body = null;
-  try {
-    body = await res.json();
-  } catch (e) {
-    // caso a resposta não seja JSON
-  }
-
-  console.log("STATUS /problem:", res.status);
-  console.log("RESPOSTA /problem:", body);
-
-  if (res.status === 401 || res.status === 403) {
-    // token inválido/expirado: limpa e manda pro login
-    localStorage.removeItem("arrumaai_token");
-    localStorage.removeItem("arrumaai_userId");
-    router.replace("/logar");
-    return;
-  }
-
-  if (!res.ok) {
+  if (!lat || !lon) {
+    setError("latitude", {
+      type: "manual",
+      message: "Marque o local no mapa ou preencha um CEP válido.",
+    });
+    setError("longitude", {
+      type: "manual",
+      message: "Marque o local no mapa ou preencha um CEP válido.",
+    });
     setShowErrorPopup(true);
     return;
   }
 
-  setShowSuccessPopup(true);
-  reset();
+  // imagem -> base64
+  const file = data.imagem?.[0];
+  const imagemBase64 = file ? await fileToBase64(file) : null;
+  const imagens = imagemBase64 ? [imagemBase64] : [];
 
-  setTimeout(() => {
-    router.push("/ocorrencias");
-  }, 1500);
-} catch (err) {
-  console.error("Erro ao chamar API /problem:", err);
-  setShowErrorPopup(true);
-}}
+  const categoriaid = Number(data.categoria);
+
+  const payload = {
+  descricao: data.descricao,
+  categoriaid,
+  // API quer string, não number
+  latitude: String(lat),
+  longitude: String(lon),
+  rua: data.logradouro || "",
+  ponto_referencia: data.complemento || "",
+  imagens,
+};
+
+  console.log("PAYLOAD ENVIADO PARA /problem:", payload);
+
+  try {
+    const token = localStorage.getItem("arrumaai_token");
+    if (!token) {
+      router.replace("/logar");
+      return;
+    }
+
+    const res = await fetch("https://arruma-ai-api.onrender.com/problem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    let body = null;
+    try {
+      body = await res.json();
+    } catch (e) {}
+
+    console.log("STATUS /problem:", res.status);
+    console.log("RESPOSTA /problem (json):", JSON.stringify(body, null, 2));
+
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem("arrumaai_token");
+      localStorage.removeItem("arrumaai_userId");
+      router.replace("/logar");
+      return;
+    }
+
+    if (!res.ok) {
+      setShowErrorPopup(true);
+      return;
+    }
+
+    setShowSuccessPopup(true);
+    reset();
+    setLatitude("");
+    setLongitude("");
+    setValue("latitude", "");
+    setValue("longitude", "");
+
+    setTimeout(() => {
+      router.push("/ocorrencias");
+    }, 1500);
+  } catch (err) {
+    console.error("Erro ao chamar API /problem:", err);
+    setShowErrorPopup(true);
+  }
+}
 
   // -------------------------------------------
   // SUBMIT INVÁLIDO
@@ -503,9 +615,21 @@ export default function Ocorrencias() {
               </label>
             </div>
 
-            {/* ocultos para debug se quiser usar no form */}
-            <input type="hidden" {...register("latitude")} />
-            <input type="hidden" {...register("longitude")} />
+            {/* ocultos para lat/long */}
+            <input
+              type="hidden"
+              {...register("latitude", {
+                required:
+                  "Não foi possível obter a latitude. Marque o local no mapa.",
+              })}
+            />
+            <input
+              type="hidden"
+              {...register("longitude", {
+                required:
+                  "Não foi possível obter a longitude. Marque o local no mapa.",
+              })}
+            />
 
             <button className={estilos.enviar} type="submit">
               Enviar Solicitação
