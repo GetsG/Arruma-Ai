@@ -305,17 +305,16 @@ ENVIAR: */
     cursor: pointer;
 }
 
-.fecharMapa{
-    display: flex;
-    padding: 10px 40px;
-    text-align: center;
-    justify-self: center;
-    margin: 15px 0 0;
-    border: 0px;
-    background-color: #2F9D53;
-    color: white;
-    font-weight: bold;
-    border-radius: 20px;
+.fecharMapa {
+  padding: 10px 40px;
+  text-align: center;
+  margin: 15px auto 0;
+  border: 0px;
+  background-color: #2F9D53;
+  color: white;
+  font-weight: bold;
+  border-radius: 20px;
+  display: block;
 }
 
 .erroPopup {
