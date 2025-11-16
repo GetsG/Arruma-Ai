@@ -15,80 +15,102 @@ const MapaModal = dynamic(
 );
 
 // ---------------------------------------------
+// Constantes de imagem
+// ---------------------------------------------
+const MAX_IMAGE_BYTES = 60 * 1024; // limite seguro para a API
+const MAX_WIDTH = 1024;
+const MAX_HEIGHT = 1024;
+
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
+
+// ---------------------------------------------
 // Helpers
 // ---------------------------------------------
-async function fileToBase64(file) {
-  // limites mais agressivos
-  const MAX_WIDTH = 800;
-  const MAX_HEIGHT = 800;
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
 
-  // vamos tentar primeiro com 0.7, se ainda ficar muito grande, 0.5
-  async function compress(quality) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
 
-      reader.onload = () => {
-        const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
 
-        img.onload = () => {
-          let width = img.width;
-          let height = img.height;
+        // Reduz mantendo proporção
+        const scale = Math.min(
+          MAX_WIDTH / width,
+          MAX_HEIGHT / height,
+          1 // nunca aumenta
+        );
 
-          const scale = Math.min(
-            MAX_WIDTH / width,
-            MAX_HEIGHT / height,
-            1 // não aumenta, só reduz
-          );
+        const canvas = document.createElement("canvas");
+        canvas.width = width * scale;
+        canvas.height = height * scale;
 
-          const canvas = document.createElement("canvas");
-          canvas.width = width * scale;
-          canvas.height = height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const tries = [0.8, 0.6, 0.4, 0.3, 0.2]; // qualidades possíveis
+        let finalDataUrl = null;
+        let finalBytes = null;
 
-          // sempre sai em JPEG independente do formato original
-          const dataUrl = canvas.toDataURL("image/jpeg", quality);
+        for (const q of tries) {
+          const dataUrl = canvas.toDataURL("image/jpeg", q);
+          const base64 = dataUrl.split(",").pop() || "";
+          const bytes = Math.ceil((base64.length * 3) / 4);
 
-          console.log("Dimensões originais:", width, "x", height);
-          console.log("Dimensões após resize:", canvas.width, "x", canvas.height);
           console.log(
-            `Base64 (quality=${quality}) tamanho aproximado:`,
-            dataUrl.length,
-            "chars"
+            `Tentativa compressão -> qualidade: ${q} | bytes: ${bytes}`
           );
 
-          resolve(dataUrl);
-        };
+          if (bytes <= MAX_IMAGE_BYTES) {
+            finalDataUrl = dataUrl;
+            finalBytes = bytes;
+            break;
+          }
+        }
 
-        img.onerror = (err) => {
-          console.error("Erro ao carregar imagem para compressão:", err);
-          reject(err);
-        };
+        // Se mesmo na menor qualidade ainda estourar o limite, não envia
+        if (!finalDataUrl) {
+          const msg =
+            "Imagem muito grande mesmo após compressão. Tente tirar uma foto mais aproximada ou recortada.";
+          console.warn(msg);
+          reject(new Error(msg));
+          return;
+        }
 
-        img.src = reader.result;
+        console.log(
+          "Compressão final -> bytes:",
+          finalBytes,
+          "| tamanho aprox.:",
+          (finalBytes / 1024).toFixed(1),
+          "KB"
+        );
+
+        resolve(finalDataUrl); // data:image/jpeg;base64,...
       };
 
-      reader.onerror = (err) => {
-        console.error("Erro ao ler arquivo de imagem:", err);
+      img.onerror = (err) => {
+        console.error("Erro ao carregar imagem para compressão:", err);
         reject(err);
       };
 
-      reader.readAsDataURL(file);
-    });
-  }
+      img.src = reader.result;
+    };
 
-  // primeira tentativa com qualidade 0.7
-  let dataUrl = await compress(0.7);
+    reader.onerror = (err) => {
+      console.error("Erro ao ler arquivo de imagem:", err);
+      reject(err);
+    };
 
-  // se ainda ficar muito grande em base64, tenta 0.5
-  // (número de chars não é perfeito, mas ~120k chars já é bem ok)
-  if (dataUrl.length > 120_000) {
-    console.log("Base64 ainda grande, tentando compressão extra (0.5)...");
-    dataUrl = await compress(0.5);
-  }
-
-  return dataUrl;
+    reader.readAsDataURL(file);
+  });
 }
 
 function getClasseIntensidade(intensidade, estilos) {
@@ -97,15 +119,6 @@ function getClasseIntensidade(intensidade, estilos) {
   if (intensidade === "Alta") return estilos.grau_alto;
   return "";
 }
-
-// limites de imagem (arquivo original)
-const MAX_IMAGE_SIZE_MB = 1; // agora 1MB
-const ALLOWED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-];
 
 // ---------------------------------------------
 // Componente
@@ -118,7 +131,6 @@ export default function Ocorrencias() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const [carregando, setCarregando] = useState(true);
-
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
 
@@ -154,7 +166,7 @@ export default function Ocorrencias() {
   }
 
   // -------------------------------------------
-  // Geocodificação: endereço -> latitude/longitude
+  // Geocodificação
   // -------------------------------------------
   async function buscarCoordenadasPorEndereco({
     logradouro,
@@ -237,9 +249,6 @@ export default function Ocorrencias() {
     }
   }
 
-  // -------------------------------------------
-  // Preenche endereço e limpa erros
-  // -------------------------------------------
   function preencherEndereco({
     cep,
     logradouro,
@@ -258,7 +267,6 @@ export default function Ocorrencias() {
     clearErrors(["cep", "logradouro", "bairro", "cidade", "estado"]);
   }
 
-  // endereço vindo do mapa
   function handleEnderecoSelecionado(end) {
     preencherEndereco({
       cep: end.cep,
@@ -283,9 +291,8 @@ export default function Ocorrencias() {
     setShowMapa(false);
   }
 
-  // CEP + ViaCEP + geocodificação
   async function buscarCep(e) {
-    const cep = e.target.value.replace(/\D/g, "");
+    const cep = e.target.value.replace(/\D/g, "").slice(0, 8);
     if (cep.length === 8) {
       try {
         const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
@@ -364,9 +371,7 @@ export default function Ocorrencias() {
       return;
     }
 
-    // ---------------------------------------
-    // Validação da imagem (tipo + tamanho)
-    // ---------------------------------------
+    // --------- IMAGEM OBRIGATÓRIA + COMPRESSÃO ----------
     const file = data.imagem?.[0];
 
     if (!file) {
@@ -378,7 +383,7 @@ export default function Ocorrencias() {
       return;
     }
 
-    console.log("Imagem selecionada:", {
+    console.log("Imagem selecionada (original):", {
       name: file.name,
       type: file.type,
       sizeKb: (file.size / 1024).toFixed(1),
@@ -393,21 +398,22 @@ export default function Ocorrencias() {
       return;
     }
 
-    const maxBytes = MAX_IMAGE_SIZE_MB * 1024 * 1024;
-    if (file.size > maxBytes) {
-      const msg = `Imagem muito grande. Tamanho máximo permitido é ${MAX_IMAGE_SIZE_MB}MB.`;
+    let imagemBase64;
+    try {
+      // aqui já vem data:image/jpeg;base64,...
+      imagemBase64 = await fileToBase64(file);
+    } catch (err) {
+      console.error("Erro ao comprimir imagem:", err);
+      const msg =
+        err?.message ||
+        "Não foi possível comprimir a imagem. Tente uma foto menor ou recortada.";
       setError("imagem", { type: "manual", message: msg });
       setApiErrorMessage(msg);
       setShowErrorPopup(true);
       return;
     }
 
-    // imagem -> base64 (com compressão)
-    const imagemBase64 = await fileToBase64(file); // dataURL (já com header image/jpeg)
-
-    // garante que vai no formato data:image/jpeg;base64,...
-    const imagemFinal = `data:image/jpeg;base64,${imagemBase64.split(",").pop()}`;
-    const imagens = [imagemFinal];
+    const imagens = [imagemBase64];
 
     const categoriaid = Number(data.categoria);
 
@@ -442,9 +448,7 @@ export default function Ocorrencias() {
       let body = null;
       try {
         body = await res.json();
-      } catch (e) {
-        // resposta sem json
-      }
+      } catch (e) {}
 
       console.log("STATUS /problem:", res.status);
       console.log("RESPOSTA /problem (json):", JSON.stringify(body, null, 2));
@@ -473,7 +477,6 @@ export default function Ocorrencias() {
         return;
       }
 
-      // sucesso
       setShowSuccessPopup(true);
       reset();
       setLatitude("");
@@ -491,9 +494,6 @@ export default function Ocorrencias() {
     }
   }
 
-  // -------------------------------------------
-  // SUBMIT INVÁLIDO
-  // -------------------------------------------
   function onInvalid(errors) {
     console.log("Erros de validação:", errors);
     setShowSuccessPopup(false);
@@ -513,7 +513,6 @@ export default function Ocorrencias() {
 
   const hasErrors = errorMessages.length > 0;
 
-  // Proteção de rota
   useEffect(() => {
     const token = localStorage.getItem("arrumaai_token");
 
@@ -571,6 +570,7 @@ export default function Ocorrencias() {
         </div>
       )}
 
+      {/* CONTEÚDO PRINCIPAL */}
       <div className={estilos.container}>
         <div className={estilos.container_topo}>
           <h1>Vamos criar uma nova solicitação ?</h1>
@@ -671,7 +671,7 @@ export default function Ocorrencias() {
               <p>Anexe foto para ajudar na solicitação</p>
             </div>
 
-            {/* GRAU INTENSIDADE (visual) */}
+            {/* GRAU INTENSIDADE */}
             <div className={estilos.grau_intensidade}>
               <h2>Grau de intensidade</h2>
               <div className={estilos.grau_intensidade_opcoes}>
