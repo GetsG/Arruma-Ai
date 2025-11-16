@@ -17,13 +17,78 @@ const MapaModal = dynamic(
 // ---------------------------------------------
 // Helpers
 // ---------------------------------------------
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+async function fileToBase64(file) {
+  // limites mais agressivos
+  const MAX_WIDTH = 800;
+  const MAX_HEIGHT = 800;
+
+  // vamos tentar primeiro com 0.7, se ainda ficar muito grande, 0.5
+  async function compress(quality) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const img = new Image();
+
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          const scale = Math.min(
+            MAX_WIDTH / width,
+            MAX_HEIGHT / height,
+            1 // não aumenta, só reduz
+          );
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width * scale;
+          canvas.height = height * scale;
+
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          // sempre sai em JPEG independente do formato original
+          const dataUrl = canvas.toDataURL("image/jpeg", quality);
+
+          console.log("Dimensões originais:", width, "x", height);
+          console.log("Dimensões após resize:", canvas.width, "x", canvas.height);
+          console.log(
+            `Base64 (quality=${quality}) tamanho aproximado:`,
+            dataUrl.length,
+            "chars"
+          );
+
+          resolve(dataUrl);
+        };
+
+        img.onerror = (err) => {
+          console.error("Erro ao carregar imagem para compressão:", err);
+          reject(err);
+        };
+
+        img.src = reader.result;
+      };
+
+      reader.onerror = (err) => {
+        console.error("Erro ao ler arquivo de imagem:", err);
+        reject(err);
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // primeira tentativa com qualidade 0.7
+  let dataUrl = await compress(0.7);
+
+  // se ainda ficar muito grande em base64, tenta 0.5
+  // (número de chars não é perfeito, mas ~120k chars já é bem ok)
+  if (dataUrl.length > 120_000) {
+    console.log("Base64 ainda grande, tentando compressão extra (0.5)...");
+    dataUrl = await compress(0.5);
+  }
+
+  return dataUrl;
 }
 
 function getClasseIntensidade(intensidade, estilos) {
@@ -32,6 +97,15 @@ function getClasseIntensidade(intensidade, estilos) {
   if (intensidade === "Alta") return estilos.grau_alto;
   return "";
 }
+
+// limites de imagem (arquivo original)
+const MAX_IMAGE_SIZE_MB = 1; // agora 1MB
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
 
 // ---------------------------------------------
 // Componente
@@ -44,14 +118,11 @@ export default function Ocorrencias() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const [carregando, setCarregando] = useState(true);
-  const [userId, setUserId] = useState("");
 
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
 
-  // flag pra saber se está buscando coordenadas
   const [carregandoCoords, setCarregandoCoords] = useState(false);
-  // mensagem de erro vinda da API / servidor
   const [apiErrorMessage, setApiErrorMessage] = useState("");
 
   const {
@@ -91,10 +162,7 @@ export default function Ocorrencias() {
     cidade,
     estado,
   }) {
-    // se faltam campos, nem tenta geocodificar
-    if (!logradouro || !cidade || !estado) {
-      return;
-    }
+    if (!logradouro || !cidade || !estado) return;
 
     try {
       setCarregandoCoords(true);
@@ -129,7 +197,6 @@ export default function Ocorrencias() {
 
         console.log("COORDENADAS ENCONTRADAS:", lat, lon);
       } else {
-        // não encontrou o endereço
         setLatitude("");
         setLongitude("");
         setValue("latitude", "", { shouldValidate: true });
@@ -263,7 +330,6 @@ export default function Ocorrencias() {
     setShowSuccessPopup(false);
     setApiErrorMessage("");
 
-    // se ainda está buscando coordenadas, segura o envio
     if (carregandoCoords) {
       setApiErrorMessage(
         "Ainda estamos localizando o endereço. Aguarde alguns segundos e tente novamente."
@@ -272,7 +338,6 @@ export default function Ocorrencias() {
       return;
     }
 
-    // descrição com trim e tamanho mínimo
     const descricaoTrim = (data.descricao || "").trim();
     if (descricaoTrim.length < 5) {
       setError("descricao", {
@@ -283,7 +348,6 @@ export default function Ocorrencias() {
       return;
     }
 
-    // garante coordenadas
     const lat = data.latitude || latitude;
     const lon = data.longitude || longitude;
 
@@ -300,10 +364,50 @@ export default function Ocorrencias() {
       return;
     }
 
-    // imagem -> base64
+    // ---------------------------------------
+    // Validação da imagem (tipo + tamanho)
+    // ---------------------------------------
     const file = data.imagem?.[0];
-    const imagemBase64 = file ? await fileToBase64(file) : null;
-    const imagens = imagemBase64 ? [imagemBase64] : [];
+
+    if (!file) {
+      setError("imagem", {
+        type: "manual",
+        message: "Anexe uma imagem para ajudar na solicitação.",
+      });
+      setShowErrorPopup(true);
+      return;
+    }
+
+    console.log("Imagem selecionada:", {
+      name: file.name,
+      type: file.type,
+      sizeKb: (file.size / 1024).toFixed(1),
+    });
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      const msg =
+        "Formato de imagem não suportado. Use JPG, JPEG, PNG ou WEBP.";
+      setError("imagem", { type: "manual", message: msg });
+      setApiErrorMessage(msg);
+      setShowErrorPopup(true);
+      return;
+    }
+
+    const maxBytes = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+    if (file.size > maxBytes) {
+      const msg = `Imagem muito grande. Tamanho máximo permitido é ${MAX_IMAGE_SIZE_MB}MB.`;
+      setError("imagem", { type: "manual", message: msg });
+      setApiErrorMessage(msg);
+      setShowErrorPopup(true);
+      return;
+    }
+
+    // imagem -> base64 (com compressão)
+    const imagemBase64 = await fileToBase64(file); // dataURL (já com header image/jpeg)
+
+    // garante que vai no formato data:image/jpeg;base64,...
+    const imagemFinal = `data:image/jpeg;base64,${imagemBase64.split(",").pop()}`;
+    const imagens = [imagemFinal];
 
     const categoriaid = Number(data.categoria);
 
@@ -338,7 +442,9 @@ export default function Ocorrencias() {
       let body = null;
       try {
         body = await res.json();
-      } catch (e) {}
+      } catch (e) {
+        // resposta sem json
+      }
 
       console.log("STATUS /problem:", res.status);
       console.log("RESPOSTA /problem (json):", JSON.stringify(body, null, 2));
@@ -351,13 +457,11 @@ export default function Ocorrencias() {
       }
 
       if (!res.ok) {
-        // erro 5xx -> problema no servidor
         if (res.status >= 500) {
           setApiErrorMessage(
             "O servidor encontrou um problema ao salvar sua solicitação. Tente novamente em alguns minutos."
           );
         } else if (body && body.message) {
-          // erro 4xx com mensagem da API
           setApiErrorMessage(body.message);
         } else {
           setApiErrorMessage(
@@ -398,19 +502,14 @@ export default function Ocorrencias() {
 
   const classeIntensidade = getClasseIntensidade(intensidade, estilos);
 
-  // mensagens de erros de campos
   const fieldErrorMessages = Object.values(errors)
     .map((err) => err?.message)
     .filter(Boolean);
 
-  // flag: tem erro de campo?
   const temErrosCampos = fieldErrorMessages.length > 0;
 
-  // array final de mensagens pro popup
   const errorMessages = [...fieldErrorMessages];
-  if (apiErrorMessage) {
-    errorMessages.push(apiErrorMessage);
-  }
+  if (apiErrorMessage) errorMessages.push(apiErrorMessage);
 
   const hasErrors = errorMessages.length > 0;
 
@@ -423,8 +522,6 @@ export default function Ocorrencias() {
       return;
     }
 
-    const id = localStorage.getItem("arrumaai_userId") || "";
-    setUserId(id);
     setCarregando(false);
   }, [router]);
 
