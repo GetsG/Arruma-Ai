@@ -57,8 +57,9 @@ export default function Ocorrencias() {
             data: p.data,
             descricao: p.descricao,
             categoria: p.categoria,
-            bairro: p.bairro || "-",
+            rua: p.endereco?.rua || "-",
             status: p.status,
+            imagem: p.imagem?.[0] || null,
           }));
 
           setOcorrencias(listaAdaptada);
@@ -123,8 +124,9 @@ export default function Ocorrencias() {
                   id={o.id}
                   data={o.data}
                   tipo={o.categoria}
-                  bairro={o.bairro}
+                  rua={o.rua}
                   status={o.status}
+                  image={o.imagem}
                 />
               ))}
             </div>

@@ -76,10 +76,9 @@ function fileToBase64(file) {
           }
         }
 
-        // Se mesmo na menor qualidade ainda estourar o limite, não envia
         if (!finalDataUrl) {
           const msg =
-            "Imagem muito grande mesmo após compressão. Tente tirar uma foto mais aproximada ou recortada.";
+            "Imagem muito grande. Tente tirar uma foto mais aproximada ou recortada.";
           console.warn(msg);
           reject(new Error(msg));
           return;
@@ -400,7 +399,6 @@ export default function Ocorrencias() {
 
     let imagemBase64;
     try {
-      // aqui já vem data:image/jpeg;base64,...
       imagemBase64 = await fileToBase64(file);
     } catch (err) {
       console.error("Erro ao comprimir imagem:", err);

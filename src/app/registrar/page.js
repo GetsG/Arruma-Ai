@@ -117,7 +117,7 @@ export default function Registrar() {
       return;
     }
 
-    // ✅ deu certo
+    // deu certo
     setSuccessMessage("Conta criada com sucesso!");
     reset();
 
