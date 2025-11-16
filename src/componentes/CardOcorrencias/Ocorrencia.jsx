@@ -3,7 +3,7 @@ import Image from "next/image";
 
 import pendente from "./Icones/pendente.png"
 import emAndamento from "./Icones/emAndamento.png"
-import resolvida from "./Icones/resolvida.png"
+import resolvido from "./Icones/resolvido.png"
 
 export default function Ocorrencia({id, data, tipo, bairro, status, image}){
     return(
@@ -17,7 +17,7 @@ export default function Ocorrencia({id, data, tipo, bairro, status, image}){
 
                 <div className={estilos.status}>
                     <p><strong>Status:</strong> {status}</p>
-                    <Image className={estilos.imagemStatus} src={status === "Pendente" ? pendente : status === "Em andamento" ? emAndamento : resolvida} alt="Status da ocorrencia"/>
+                    <Image className={estilos.imagemStatus} src={status === "Pendente" ? pendente : status === "Em andamento" ? emAndamento : resolvido} alt="Status da ocorrencia"/>
                 </div>
             </div>
 

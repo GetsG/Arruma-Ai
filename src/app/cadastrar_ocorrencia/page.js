@@ -49,6 +49,10 @@ export default function Ocorrencias() {
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
 
+  // NOVO: flag pra saber se está buscando coordenadas
+  const [carregandoCoords, setCarregandoCoords] = useState(false);
+  const [apiErrorMessage, setApiErrorMessage] = useState("");
+
   const {
     register,
     handleSubmit,
@@ -86,17 +90,23 @@ export default function Ocorrencias() {
     cidade,
     estado,
   }) {
+    // se faltam campos, nem tenta geocodificar
+    if (!logradouro || !cidade || !estado) {
+      return;
+    }
+
     try {
-      // monta uma string de endereço
+      setCarregandoCoords(true);
+      setApiErrorMessage("");
+
       const query = encodeURIComponent(
-        `${logradouro}, ${bairro}, ${cidade} - ${estado}, Brasil`
+        `${logradouro}, ${bairro || ""}, ${cidade} - ${estado}, Brasil`
       );
 
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`,
         {
           headers: {
-            // boa prática do Nominatim: identificar a aplicação
             "User-Agent": "ArrumaAi-TCC-Front",
           },
         }
@@ -105,18 +115,15 @@ export default function Ocorrencias() {
       const data = await res.json();
 
       if (Array.isArray(data) && data.length > 0) {
-        const lat = data[0].lat;
-        const lon = data[0].lon;
+        const lat = String(data[0].lat);
+        const lon = String(data[0].lon);
 
-        // salva no state
         setLatitude(lat);
         setLongitude(lon);
 
-        // e nos campos escondidos do form
         setValue("latitude", lat, { shouldValidate: true });
         setValue("longitude", lon, { shouldValidate: true });
 
-        // limpa erros relacionados a coordenadas
         clearErrors(["latitude", "longitude"]);
 
         console.log("COORDENADAS ENCONTRADAS:", lat, lon);
@@ -157,6 +164,8 @@ export default function Ocorrencias() {
           "Erro ao localizar endereço. Marque o local no mapa para continuar.",
       });
       setShowErrorPopup(true);
+    } finally {
+      setCarregandoCoords(false);
     }
   }
 
@@ -183,31 +192,30 @@ export default function Ocorrencias() {
 
   // endereço vindo do mapa
   function handleEnderecoSelecionado(end) {
-  preencherEndereco({
-    cep: end.cep,
-    logradouro: end.logradouro,
-    numero: end.numero,
-    bairro: end.bairro,
-    cidade: end.cidade,
-    estado: end.estado,
-  });
+    preencherEndereco({
+      cep: end.cep,
+      logradouro: end.logradouro,
+      numero: end.numero,
+      bairro: end.bairro,
+      cidade: end.cidade,
+      estado: end.estado,
+    });
 
-  // força string
-  const lat = end.latitude != null ? String(end.latitude) : "";
-  const lon = end.longitude != null ? String(end.longitude) : "";
+    const lat = end.latitude != null ? String(end.latitude) : "";
+    const lon = end.longitude != null ? String(end.longitude) : "";
 
-  setLatitude(lat);
-  setLongitude(lon);
+    setLatitude(lat);
+    setLongitude(lon);
 
-  setValue("latitude", lat, { shouldValidate: true });
-  setValue("longitude", lon, { shouldValidate: true });
+    setValue("latitude", lat, { shouldValidate: true });
+    setValue("longitude", lon, { shouldValidate: true });
 
-  clearErrors(["latitude", "longitude"]);
+    clearErrors(["latitude", "longitude"]);
 
-  setShowMapa(false);
-}
+    setShowMapa(false);
+  }
 
-  // CEP digitado manualmente: só números + ViaCEP + geocodificação
+  // CEP + ViaCEP + geocodificação
   async function buscarCep(e) {
     const cep = e.target.value.replace(/\D/g, "");
     if (cep.length === 8) {
@@ -225,7 +233,6 @@ export default function Ocorrencias() {
             estado: dados.uf,
           });
 
-          // tenta obter latitude/longitude pelo endereço
           await buscarCoordenadasPorEndereco({
             logradouro: dados.logradouro,
             bairro: dados.bairro,
@@ -248,100 +255,125 @@ export default function Ocorrencias() {
   // SUBMIT VÁLIDO
   // -------------------------------------------
   async function onSubmit(data) {
-  console.log("=== SUBMIT DISPARADO ===");
-  console.log("Dados do formulário:", data);
+    console.log("=== SUBMIT DISPARADO ===");
+    console.log("Dados do formulário:", data);
 
-  setShowErrorPopup(false);
-  setShowSuccessPopup(false);
+    setShowErrorPopup(false);
+    setShowSuccessPopup(false);
+    setApiErrorMessage("");
 
-  // garante que temos coordenadas (CEP+geocode ou mapa)
-  const lat = data.latitude || latitude;
-  const lon = data.longitude || longitude;
-
-  if (!lat || !lon) {
-    setError("latitude", {
-      type: "manual",
-      message: "Marque o local no mapa ou preencha um CEP válido.",
-    });
-    setError("longitude", {
-      type: "manual",
-      message: "Marque o local no mapa ou preencha um CEP válido.",
-    });
-    setShowErrorPopup(true);
-    return;
-  }
-
-  // imagem -> base64
-  const file = data.imagem?.[0];
-  const imagemBase64 = file ? await fileToBase64(file) : null;
-  const imagens = imagemBase64 ? [imagemBase64] : [];
-
-  const categoriaid = Number(data.categoria);
-
-  const payload = {
-  descricao: data.descricao,
-  categoriaid,
-  // API quer string, não number
-  latitude: String(lat),
-  longitude: String(lon),
-  rua: data.logradouro || "",
-  ponto_referencia: data.complemento || "",
-  imagens,
-};
-
-  console.log("PAYLOAD ENVIADO PARA /problem:", payload);
-
-  try {
-    const token = localStorage.getItem("arrumaai_token");
-    if (!token) {
-      router.replace("/logar");
-      return;
-    }
-
-    const res = await fetch("https://arruma-ai-api.onrender.com/problem", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    let body = null;
-    try {
-      body = await res.json();
-    } catch (e) {}
-
-    console.log("STATUS /problem:", res.status);
-    console.log("RESPOSTA /problem (json):", JSON.stringify(body, null, 2));
-
-    if (res.status === 401 || res.status === 403) {
-      localStorage.removeItem("arrumaai_token");
-      localStorage.removeItem("arrumaai_userId");
-      router.replace("/logar");
-      return;
-    }
-
-    if (!res.ok) {
+    // se ainda está buscando coordenadas, segura o envio
+    if (carregandoCoords) {
+      setApiErrorMessage(
+        "Ainda estamos localizando o endereço. Aguarde alguns segundos e tente novamente."
+      );
       setShowErrorPopup(true);
       return;
     }
 
-    setShowSuccessPopup(true);
-    reset();
-    setLatitude("");
-    setLongitude("");
-    setValue("latitude", "");
-    setValue("longitude", "");
+    // descrição com trim e tamanho mínimo
+    const descricaoTrim = (data.descricao || "").trim();
+    if (descricaoTrim.length < 5) {
+      setError("descricao", {
+        type: "manual",
+        message: "A descrição deve ter pelo menos 5 caracteres.",
+      });
+      setShowErrorPopup(true);
+      return;
+    }
 
-    setTimeout(() => {
-      router.push("/ocorrencias");
-    }, 1500);
-  } catch (err) {
-    console.error("Erro ao chamar API /problem:", err);
-    setShowErrorPopup(true);
+    // garante coordenadas
+    const lat = data.latitude || latitude;
+    const lon = data.longitude || longitude;
+
+    if (!lat || !lon) {
+      setError("latitude", {
+        type: "manual",
+        message: "Marque o local no mapa ou preencha um CEP válido.",
+      });
+      setError("longitude", {
+        type: "manual",
+        message: "Marque o local no mapa ou preencha um CEP válido.",
+      });
+      setShowErrorPopup(true);
+      return;
+    }
+
+    // imagem -> base64
+    const file = data.imagem?.[0];
+    const imagemBase64 = file ? await fileToBase64(file) : null;
+    const imagens = imagemBase64 ? [imagemBase64] : [];
+
+    const categoriaid = Number(data.categoria);
+
+    const payload = {
+      descricao: descricaoTrim,
+      categoriaid,
+      latitude: String(lat),
+      longitude: String(lon),
+      rua: data.logradouro || "",
+      ponto_referencia: data.complemento || "",
+      imagens,
+    };
+
+    console.log("PAYLOAD ENVIADO PARA /problem:", payload);
+
+    try {
+      const token = localStorage.getItem("arrumaai_token");
+      if (!token) {
+        router.replace("/logar");
+        return;
+      }
+
+      const res = await fetch("https://arruma-ai-api.onrender.com/problem", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      let body = null;
+      try {
+        body = await res.json();
+      } catch (e) {}
+
+      console.log("STATUS /problem:", res.status);
+      console.log("RESPOSTA /problem (json):", JSON.stringify(body, null, 2));
+
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("arrumaai_token");
+        localStorage.removeItem("arrumaai_userId");
+        router.replace("/logar");
+        return;
+      }
+
+      if (!res.ok) {
+        // tenta mostrar mensagem da API se tiver
+        if (body && body.message) {
+          setApiErrorMessage(body.message);
+        }
+        setShowErrorPopup(true);
+        return;
+      }
+
+      setShowSuccessPopup(true);
+      reset();
+      setLatitude("");
+      setLongitude("");
+      setValue("latitude", "");
+      setValue("longitude", "");
+
+      setTimeout(() => {
+        router.push("/ocorrencias");
+      }, 1500);
+    } catch (err) {
+      console.error("Erro ao chamar API /problem:", err);
+      setApiErrorMessage("Erro ao conectar com o servidor. Tente novamente.");
+      setShowErrorPopup(true);
+    }
   }
-}
 
   // -------------------------------------------
   // SUBMIT INVÁLIDO
@@ -354,9 +386,12 @@ export default function Ocorrencias() {
 
   const classeIntensidade = getClasseIntensidade(intensidade, estilos);
 
-  const errorMessages = Object.values(errors)
-    .map((err) => err?.message)
-    .filter(Boolean);
+  const errorMessages = [
+    ...Object.values(errors)
+      .map((err) => err?.message)
+      .filter(Boolean),
+    ...(apiErrorMessage ? [apiErrorMessage] : []),
+  ];
 
   const hasErrors = errorMessages.length > 0;
 
@@ -476,6 +511,11 @@ export default function Ocorrencias() {
                   placeholder="Preencha com o seu relato ou denúncia"
                   {...register("descricao", {
                     required: "Descrição é obrigatória",
+                    minLength: {
+                      value: 5,
+                      message:
+                        "A descrição deve ter pelo menos 5 caracteres",
+                    },
                   })}
                   maxLength={50}
                   onChange={handleDescricaoChange}
@@ -589,7 +629,9 @@ export default function Ocorrencias() {
                 <input
                   id="bairro"
                   type="text"
-                  {...register("bairro", { required: "Informe o bairro" })}
+                  {...register("bairro", {
+                    required: "Informe o bairro",
+                  })}
                   maxLength={100}
                 />
               </label>
@@ -599,7 +641,9 @@ export default function Ocorrencias() {
                 <input
                   id="cidade"
                   type="text"
-                  {...register("cidade", { required: "Informe a cidade" })}
+                  {...register("cidade", {
+                    required: "Informe a cidade",
+                  })}
                   maxLength={50}
                 />
               </label>
@@ -609,7 +653,9 @@ export default function Ocorrencias() {
                 <input
                   id="estado"
                   type="text"
-                  {...register("estado", { required: "Informe o estado" })}
+                  {...register("estado", {
+                    required: "Informe o estado",
+                  })}
                   maxLength={50}
                 />
               </label>
@@ -631,8 +677,14 @@ export default function Ocorrencias() {
               })}
             />
 
-            <button className={estilos.enviar} type="submit">
-              Enviar Solicitação
+            <button
+              className={estilos.enviar}
+              type="submit"
+              disabled={carregandoCoords}
+            >
+              {carregandoCoords
+                ? "Aguarde, localizando endereço..."
+                : "Enviar Solicitação"}
             </button>
           </form>
         </div>
