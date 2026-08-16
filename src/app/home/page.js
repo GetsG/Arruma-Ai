@@ -1,8 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import iconeMais from "/public/home/+.png";
 import agua from "/public/home/gota.png";
@@ -10,34 +9,21 @@ import atencao from "/public/home/atencao.png";
 import rua from "/public/home/rua.png";
 import estilos from "./home.module.css";
 import Nav from "../../componentes/Nav/Nav.jsx";
-import Carregando from "../../componentes/Carregando/Carregando.jsx"
+import Carregando from "../../componentes/Carregando/Carregando.jsx";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
+import { getNome } from "../../services/authService";
 
 export default function Home() {
   const router = useRouter();
-
-  const [carregando, setCarregando] = useState(true);
+  const { carregando } = useRequireAuth();
   const [nome, setNome] = useState("");
 
-  function criarSolicitacao() {
-    router.push("/cadastrar_ocorrencia");
-  }
-
   useEffect(() => {
-    const token = localStorage.getItem("arrumaai_token");
-
-    if (!token) {
-      router.replace("/logar");
-      return;
-    }
-
-    const nomeSalvo = localStorage.getItem("arrumaai_nome") || "";
-    setNome(nomeSalvo);
-
-    setCarregando(false);
-  }, [router]);
+    setNome(getNome());
+  }, []);
 
   if (carregando) {
-    return <Carregando/>;
+    return <Carregando />;
   }
 
   return (
@@ -48,7 +34,7 @@ export default function Home() {
             <h1>Oi, {nome || "..."}!</h1>
             <p>Que tal ajudar a melhorar sua cidade agora?</p>
           </div>
-          <button onClick={criarSolicitacao}>
+          <button onClick={() => router.push("/cadastrar_ocorrencia")}>
             <Image
               src={iconeMais}
               alt="Icone mais para criar uma solicitação"
@@ -64,7 +50,7 @@ export default function Home() {
             <Image
               className={estilos.icones}
               src={agua}
-              alt="Ícone de gota d’água indicando manutenção próxima"
+              alt="Ícone de gota d'água indicando manutenção próxima"
             />
             <div className={estilos.conteudo}>
               <h2>Manutenções programadas próximas a você</h2>

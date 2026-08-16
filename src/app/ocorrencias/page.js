@@ -10,79 +10,38 @@ import mapa from "../../../public/ocorrencias/mapa.png";
 import mais from "../../../public/ocorrencias/mais.png";
 import Image from "next/image";
 import Carregando from "../../componentes/Carregando/Carregando";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
+import { listarProblemas } from "../../services/problemService";
+import { getToken } from "../../services/authService";
 
 export default function Ocorrencias() {
   const router = useRouter();
+  const { carregando: authCarregando } = useRequireAuth();
 
   const [ocorrencias, setOcorrencias] = useState([]);
-  const [carregando, setCarregando] = useState(true);
+  const [carregandoDados, setCarregandoDados] = useState(false);
 
   useEffect(() => {
-    async function carregarOcorrencias() {
-      const token = localStorage.getItem("arrumaai_token");
+    if (authCarregando) return;
 
-      // se não tiver token, manda pro login
-      if (!token) {
-        router.replace("/logar");
-        return;
-      }
+    const token = getToken();
+    setCarregandoDados(true);
 
-      try {
-        const res = await fetch(
-          "https://arruma-ai-api.onrender.com/problem",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
-          }
-        );
-
-        // se o token for inválido / expirado
-        if (res.status === 401 || res.status === 403) {
-          localStorage.removeItem("arrumaai_token");
-          localStorage.removeItem("arrumaai_userId");
+    listarProblemas(token)
+      .then(setOcorrencias)
+      .catch((err) => {
+        if (err.message === "UNAUTHORIZED") {
           router.replace("/logar");
           return;
         }
-
-        const body = await res.json();
-        console.log("RESPOSTA GET /problems:", body);
-
-        if (body.success && Array.isArray(body.data)) {
-          // adapta o formato pra usar no CardOcorrencia
-          const listaAdaptada = body.data.map((p) => ({
-            id: p.problemaid,
-            data: p.data,
-            descricao: p.descricao,
-            categoria: p.categoria,
-            rua: p.endereco?.rua || "-",
-            status: p.status,
-            imagem: p.imagem?.[0] || null,
-          }));
-
-          setOcorrencias(listaAdaptada);
-        } else {
-          setOcorrencias([]);
-        }
-      } catch (err) {
-        console.error("Erro ao buscar /problems:", err);
         setOcorrencias([]);
-      } finally {
-        setCarregando(false);
-      }
-    }
+        console.error("Erro ao buscar problemas:", err);
+      })
+      .finally(() => setCarregandoDados(false));
+  }, [authCarregando, router]);
 
-    carregarOcorrencias();
-  }, [router]);
-
-  if (carregando) {
-    return (
-      <>
-    <Carregando/>
-</>
-    );
+  if (authCarregando || carregandoDados) {
+    return <Carregando />;
   }
 
   return (
@@ -94,9 +53,7 @@ export default function Ocorrencias() {
         </div>
 
         <div className={estilos.container_main}>
-          <p className={estilos.mensagem_solicitacao}>
-            Solicitações enviadas :
-          </p>
+          <p className={estilos.mensagem_solicitacao}>Solicitações enviadas :</p>
 
           {ocorrencias.length === 0 ? (
             <div className={estilos.sem_solicitacao}>
@@ -123,8 +80,10 @@ export default function Ocorrencias() {
                   key={o.id}
                   id={o.id}
                   data={o.data}
+                  descricao={o.descricao}
                   tipo={o.categoria}
                   rua={o.rua}
+                  pontoReferencia={o.pontoReferencia}
                   status={o.status}
                   image={o.imagem}
                 />

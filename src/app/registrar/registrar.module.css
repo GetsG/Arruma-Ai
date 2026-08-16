@@ -1,100 +1,255 @@
-.container{
+/* ── PÁGINA ── */
+.pagina {
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
-    background-color: #ffffff;
-    border: 2px solid #023f15;
-    border-radius: 20px;
     flex-direction: column;
-    gap: 20px;
-    margin: 50px auto;
-    width: 370px;
-    padding: 15px; 
+    background: #2F9D53;
 }
 
-.campo{
-    margin-bottom: 20px;
+/* ── TOPO VERDE ── */
+.topo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 24px 28px;
+    gap: 6px;
 }
 
-.container h1{
-    margin-bottom: 25px;
+.logoWrapper {
+    width: 80px;
+    height: 80px;
+    background: white;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    margin-bottom: 4px;
+}
+
+.appNome {
+    color: white;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.appSlogan {
+    color: rgba(255,255,255,0.78);
+    font-size: 13px;
+}
+
+/* ── CARD ── */
+.card {
+    background: white;
+    border-radius: 28px 28px 0 0;
+    padding: 28px 22px;
+    padding-bottom: calc(36px + env(safe-area-inset-bottom));
+    flex: 1;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.10);
+}
+
+.cardTitulo {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin-bottom: 3px;
     text-align: center;
 }
 
-.container p{
-    font-size: 15px;
+.cardSubtitulo {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
-.container input{
-    padding: 15px;
+/* ── FORM ── */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #444;
+}
+
+.input {
     width: 100%;
-    background-color: rgb(221, 217, 217);
-    border: 1px solid #023f15;
-    border-radius: 13px;
+    box-sizing: border-box;
+    padding: 14px 16px;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 12px;
+    font-size: 16px;
+    color: #1a1a1a;
+    background: #fafafa;
+    outline: none;
+    -webkit-appearance: none;
+    transition: border-color 0.2s;
 }
 
-.termos {
-    margin-top: 10px;
-    display: inline-flex;
-    gap: 20px;
+.input:focus {
+    border-color: #2F9D53;
+    background: white;
 }
 
-.termos input[type="checkbox"]{
-    font-size: 10px;
-    width: 20px;
-    height: 20px;
+/* ── SENHA ── */
+.campoSenha {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
-.termos a {
-    color: #2563eb;
+.campoSenha .input {
+    padding-right: 50px;
+}
+
+.toggleSenha {
+    position: absolute;
+    right: 14px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.iconeOlho {
+    font-size: 22px;
+    color: #2F9D53;
+}
+
+/* ── TERMOS ── */
+.termosWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.termosLabel {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: #444;
+    cursor: pointer;
+}
+
+.checkbox {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px;
+    accent-color: #2F9D53;
+    cursor: pointer;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.termosLink {
+    color: #2F9D53;
+    font-weight: 600;
     text-decoration: none;
 }
 
-.termos a:hover {
-    text-decoration: underline;
-}
-
-.container_botoes{
-    display: flex;
-    gap: 40px;
-    justify-content: center;
-    margin-top: 40px;
-}
-
-.cadastrar{
-    background-color: #529e56;
-}
-
-.container_botoes button{
-    width: 150px;
+/* ── BOTÃO ── */
+.btnCadastrar {
+    width: 100%;
     padding: 15px;
-    border-radius: 20px;
+    background: #2F9D53;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
     cursor: pointer;
-    font-weight: bold;
-    border: 1px solid black;
+    min-height: 52px;
+    margin-top: 4px;
+    letter-spacing: 0.3px;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.2s;
+}
+
+.btnCadastrar:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* ── JÁ TEM CONTA ── */
+.jaTemConta {
+    text-align: center;
+    font-size: 13px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.linkEntrar {
+    color: #2F9D53;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* ── FEEDBACK ── */
+.erroField {
+    font-size: 12px;
+    color: #dc2626;
+    padding-left: 2px;
 }
 
 .erro {
-  color: #ff4d4d;        /* vermelho suave */
-  font-size: 0.75rem;    /* igual o da outra página */
-  display: block;
-  padding-left: 2px;
+    background: #fef2f2;
+    border: 1.5px solid #fecaca;
+    color: #dc2626;
+    font-size: 13px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 4px;
 }
 
-.mensagemSucesso {
-  background-color: #dfffe4;
-  border: 1px solid #2f9d53;
-  color: #1e6b38;
-  padding: 8px 12px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  font-size: 0.9rem;
+.sucesso {
+    background: #f0fdf4;
+    border: 1.5px solid #bbf7d0;
+    color: #16a34a;
+    font-size: 13px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 4px;
 }
 
-.mensagemErroGeral {
-  background-color: #ffe0e0;
-  border: 1px solid #ff4d4d;
-  color: #b30000;
-  padding: 8px 12px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  font-size: 0.9rem;
+/* ── TABLET/DESKTOP ── */
+@media (min-width: 480px) {
+    .pagina {
+        align-items: center;
+        justify-content: center;
+    }
+
+    .topo {
+        width: 100%;
+        max-width: 420px;
+        padding: 32px 24px 20px;
+    }
+
+    .card {
+        width: 100%;
+        max-width: 420px;
+        border-radius: 28px;
+        flex: none;
+        padding-bottom: 36px;
+        margin-bottom: 32px;
+    }
 }

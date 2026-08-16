@@ -7,9 +7,10 @@
     width: 100%;
     height: var(--footer-h);
     max-width: 100%;
-    display: flex;          
-    justify-content: center;    
-    padding-bottom: env(safe-area-inset-bottom); 
+    display: flex;
+    justify-content: center;
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 1000;
 }
 
 .nav nav{

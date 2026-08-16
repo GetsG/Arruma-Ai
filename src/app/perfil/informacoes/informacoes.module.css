@@ -1,0 +1,147 @@
+.pagina {
+    min-height: 100vh;
+    background: #EFEFEF;
+}
+
+/* ── TOPO ── */
+.topo {
+    background: #2F9D53;
+    padding: 20px 20px 0;
+    text-align: center;
+    position: relative;
+}
+
+.voltar {
+    position: absolute;
+    top: 20px;
+    left: 16px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.titulo {
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+/* ── AVATAR ── */
+.avatarWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0 32px;
+    gap: 6px;
+}
+
+.avatar {
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    background: white;
+    color: #2F9D53;
+    font-size: 36px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.avatarNome {
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+.avatarTipo {
+    color: rgba(255,255,255,0.75);
+    font-size: 13px;
+    background: rgba(255,255,255,0.15);
+    padding: 2px 12px;
+    border-radius: 20px;
+}
+
+/* ── CONTEÚDO ── */
+.conteudo {
+    padding: 24px 16px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.secao {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.secaoTitulo {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #888;
+    padding-left: 4px;
+}
+
+/* ── CARD ── */
+.card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.06);
+    padding: 4px 0;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 14px 18px;
+}
+
+.campoLabel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: #999;
+}
+
+.campoIcone {
+    font-size: 14px;
+}
+
+.campoValor {
+    font-size: 15px;
+    color: #1a1a1a;
+    font-weight: 500;
+    padding-left: 20px;
+}
+
+.divisor {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 0 18px;
+}
+
+.erro {
+    text-align: center;
+    color: #dc2626;
+    font-size: 14px;
+    padding: 20px;
+}

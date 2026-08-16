@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useForm } from "react-hook-form";
@@ -8,133 +8,27 @@ import { useForm } from "react-hook-form";
 import estilos from "./cadastrar_ocorrencia.module.css";
 import Nav from "../../componentes/Nav/Nav.jsx";
 import Carregando from "../../componentes/Carregando/Carregando.jsx";
+import { useRequireAuth } from "../../hooks/useRequireAuth";
+import { compressImage, ALLOWED_IMAGE_TYPES } from "../../services/imageService";
+import { criarProblema } from "../../services/problemService";
+import { getToken } from "../../services/authService";
 
-const MapaModal = dynamic(
+const Mapa = dynamic(
   () => import("../../componentes/MapaModal/MapaModal.jsx"),
   { ssr: false }
 );
 
-// ---------------------------------------------
-// Constantes de imagem
-// ---------------------------------------------
-const MAX_IMAGE_BYTES = 60 * 1024; // limite seguro para a API
-const MAX_WIDTH = 1024;
-const MAX_HEIGHT = 1024;
-
-const ALLOWED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-];
-
-// ---------------------------------------------
-// Helpers
-// ---------------------------------------------
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      const img = new Image();
-
-      img.onload = () => {
-        let width = img.width;
-        let height = img.height;
-
-        // Reduz mantendo proporção
-        const scale = Math.min(
-          MAX_WIDTH / width,
-          MAX_HEIGHT / height,
-          1 // nunca aumenta
-        );
-
-        const canvas = document.createElement("canvas");
-        canvas.width = width * scale;
-        canvas.height = height * scale;
-
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        const tries = [0.8, 0.6, 0.4, 0.3, 0.2]; // qualidades possíveis
-        let finalDataUrl = null;
-        let finalBytes = null;
-
-        for (const q of tries) {
-          const dataUrl = canvas.toDataURL("image/jpeg", q);
-          const base64 = dataUrl.split(",").pop() || "";
-          const bytes = Math.ceil((base64.length * 3) / 4);
-
-          console.log(
-            `Tentativa compressão -> qualidade: ${q} | bytes: ${bytes}`
-          );
-
-          if (bytes <= MAX_IMAGE_BYTES) {
-            finalDataUrl = dataUrl;
-            finalBytes = bytes;
-            break;
-          }
-        }
-
-        if (!finalDataUrl) {
-          const msg =
-            "Imagem muito grande. Tente tirar uma foto mais aproximada ou recortada.";
-          console.warn(msg);
-          reject(new Error(msg));
-          return;
-        }
-
-        console.log(
-          "Compressão final -> bytes:",
-          finalBytes,
-          "| tamanho aprox.:",
-          (finalBytes / 1024).toFixed(1),
-          "KB"
-        );
-
-        resolve(finalDataUrl); // data:image/jpeg;base64,...
-      };
-
-      img.onerror = (err) => {
-        console.error("Erro ao carregar imagem para compressão:", err);
-        reject(err);
-      };
-
-      img.src = reader.result;
-    };
-
-    reader.onerror = (err) => {
-      console.error("Erro ao ler arquivo de imagem:", err);
-      reject(err);
-    };
-
-    reader.readAsDataURL(file);
-  });
-}
-
-function getClasseIntensidade(intensidade, estilos) {
-  if (intensidade === "Baixa") return estilos.grau_baixa;
-  if (intensidade === "Moderada") return estilos.grau_media;
-  if (intensidade === "Alta") return estilos.grau_alto;
-  return "";
-}
-
-// ---------------------------------------------
-// Componente
-// ---------------------------------------------
-export default function Ocorrencias() {
+export default function CadastrarOcorrencia() {
   const router = useRouter();
+  const { carregando } = useRequireAuth();
 
-  const [showMapa, setShowMapa] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-
-  const [carregando, setCarregando] = useState(true);
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
-
-  const [carregandoCoords, setCarregandoCoords] = useState(false);
+  const [rua, setRua] = useState("");
   const [apiErrorMessage, setApiErrorMessage] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
   const {
     register,
@@ -145,17 +39,12 @@ export default function Ocorrencias() {
     reset,
     clearErrors,
     setError,
-  } = useForm({
-    mode: "onSubmit",
-    reValidateMode: "onChange",
-  });
+  } = useForm({ mode: "onSubmit", reValidateMode: "onChange" });
 
   const descricao = watch("descricao") || "";
   const categoria = watch("categoria");
-  const intensidade = watch("intensidade");
   const imagemFiles = watch("imagem");
-  const imagemPreview =
-    imagemFiles && imagemFiles.length > 0 ? imagemFiles[0] : null;
+  const imagemPreview = imagemFiles && imagemFiles.length > 0 ? imagemFiles[0] : null;
 
   const limite = 50;
 
@@ -164,185 +53,23 @@ export default function Ocorrencias() {
     setValue("descricao", texto, { shouldValidate: true });
   }
 
-  // -------------------------------------------
-  // Geocodificação
-  // -------------------------------------------
-  async function buscarCoordenadasPorEndereco({
-    logradouro,
-    bairro,
-    cidade,
-    estado,
-  }) {
-    if (!logradouro || !cidade || !estado) return;
-
-    try {
-      setCarregandoCoords(true);
-      setApiErrorMessage("");
-
-      const query = encodeURIComponent(
-        `${logradouro}, ${bairro || ""}, ${cidade} - ${estado}, Brasil`
-      );
-
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`,
-        {
-          headers: {
-            "User-Agent": "ArrumaAi-TCC-Front",
-          },
-        }
-      );
-
-      const data = await res.json();
-
-      if (Array.isArray(data) && data.length > 0) {
-        const lat = String(data[0].lat);
-        const lon = String(data[0].lon);
-
-        setLatitude(lat);
-        setLongitude(lon);
-
-        setValue("latitude", lat, { shouldValidate: true });
-        setValue("longitude", lon, { shouldValidate: true });
-
-        clearErrors(["latitude", "longitude"]);
-
-        console.log("COORDENADAS ENCONTRADAS:", lat, lon);
-      } else {
-        setLatitude("");
-        setLongitude("");
-        setValue("latitude", "", { shouldValidate: true });
-        setValue("longitude", "", { shouldValidate: true });
-
-        setError("latitude", {
-          type: "manual",
-          message:
-            "Não foi possível localizar automaticamente. Marque o local no mapa.",
-        });
-        setError("longitude", {
-          type: "manual",
-          message:
-            "Não foi possível localizar automaticamente. Marque o local no mapa.",
-        });
-        setShowErrorPopup(true);
-      }
-    } catch (err) {
-      console.error("Erro ao buscar coordenadas:", err);
-      setLatitude("");
-      setLongitude("");
-      setValue("latitude", "", { shouldValidate: true });
-      setValue("longitude", "", { shouldValidate: true });
-
-      setError("latitude", {
-        type: "manual",
-        message:
-          "Erro ao localizar endereço. Marque o local no mapa para continuar.",
-      });
-      setError("longitude", {
-        type: "manual",
-        message:
-          "Erro ao localizar endereço. Marque o local no mapa para continuar.",
-      });
-      setShowErrorPopup(true);
-    } finally {
-      setCarregandoCoords(false);
-    }
-  }
-
-  function preencherEndereco({
-    cep,
-    logradouro,
-    numero,
-    bairro,
-    cidade,
-    estado,
-  }) {
-    setValue("cep", cep || "", { shouldValidate: true });
-    setValue("logradouro", logradouro || "", { shouldValidate: true });
-    setValue("complemento", numero || "", { shouldValidate: true });
-    setValue("bairro", bairro || "", { shouldValidate: true });
-    setValue("cidade", cidade || "", { shouldValidate: true });
-    setValue("estado", estado || "", { shouldValidate: true });
-
-    clearErrors(["cep", "logradouro", "bairro", "cidade", "estado"]);
-  }
-
-  function handleEnderecoSelecionado(end) {
-    preencherEndereco({
-      cep: end.cep,
-      logradouro: end.logradouro,
-      numero: end.numero,
-      bairro: end.bairro,
-      cidade: end.cidade,
-      estado: end.estado,
-    });
-
-    const lat = end.latitude != null ? String(end.latitude) : "";
-    const lon = end.longitude != null ? String(end.longitude) : "";
+  function handleLocalSelecionado(end) {
+    const lat = end.latitude ?? "";
+    const lon = end.longitude ?? "";
 
     setLatitude(lat);
     setLongitude(lon);
+    setRua(end.logradouro || "");
 
     setValue("latitude", lat, { shouldValidate: true });
     setValue("longitude", lon, { shouldValidate: true });
-
     clearErrors(["latitude", "longitude"]);
-
-    setShowMapa(false);
   }
 
-  async function buscarCep(e) {
-    const cep = e.target.value.replace(/\D/g, "").slice(0, 8);
-    if (cep.length === 8) {
-      try {
-        const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-        const dados = await res.json();
-
-        if (!dados.erro) {
-          preencherEndereco({
-            cep,
-            logradouro: dados.logradouro,
-            numero: "",
-            bairro: dados.bairro,
-            cidade: dados.localidade,
-            estado: dados.uf,
-          });
-
-          await buscarCoordenadasPorEndereco({
-            logradouro: dados.logradouro,
-            bairro: dados.bairro,
-            cidade: dados.localidade,
-            estado: dados.uf,
-          });
-        }
-      } catch (err) {
-        console.error("Erro ao buscar CEP:", err);
-      }
-    }
-  }
-
-  function handleCepChange(e) {
-    const apenasNumeros = e.target.value.replace(/\D/g, "").slice(0, 8);
-    setValue("cep", apenasNumeros, { shouldValidate: true });
-  }
-
-  // -------------------------------------------
-  // SUBMIT VÁLIDO
-  // -------------------------------------------
   async function onSubmit(data) {
-    console.log("=== SUBMIT DISPARADO ===");
-    console.log("Dados do formulário:", data);
-
     setShowErrorPopup(false);
     setShowSuccessPopup(false);
     setApiErrorMessage("");
-
-    if (carregandoCoords) {
-      setApiErrorMessage(
-        "Ainda estamos localizando o endereço. Aguarde alguns segundos e tente novamente."
-      );
-      setShowErrorPopup(true);
-      return;
-    }
 
     const descricaoTrim = (data.descricao || "").trim();
     if (descricaoTrim.length < 5) {
@@ -360,19 +87,13 @@ export default function Ocorrencias() {
     if (!lat || !lon) {
       setError("latitude", {
         type: "manual",
-        message: "Marque o local no mapa ou preencha um CEP válido.",
-      });
-      setError("longitude", {
-        type: "manual",
-        message: "Marque o local no mapa ou preencha um CEP válido.",
+        message: "Marque o local no mapa para continuar.",
       });
       setShowErrorPopup(true);
       return;
     }
 
-    // --------- IMAGEM OBRIGATÓRIA + COMPRESSÃO ----------
     const file = data.imagem?.[0];
-
     if (!file) {
       setError("imagem", {
         type: "manual",
@@ -382,15 +103,8 @@ export default function Ocorrencias() {
       return;
     }
 
-    console.log("Imagem selecionada (original):", {
-      name: file.name,
-      type: file.type,
-      sizeKb: (file.size / 1024).toFixed(1),
-    });
-
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      const msg =
-        "Formato de imagem não suportado. Use JPG, JPEG, PNG ou WEBP.";
+      const msg = "Formato de imagem não suportado. Use JPG, JPEG, PNG ou WEBP.";
       setError("imagem", { type: "manual", message: msg });
       setApiErrorMessage(msg);
       setShowErrorPopup(true);
@@ -399,9 +113,8 @@ export default function Ocorrencias() {
 
     let imagemBase64;
     try {
-      imagemBase64 = await fileToBase64(file);
+      imagemBase64 = await compressImage(file);
     } catch (err) {
-      console.error("Erro ao comprimir imagem:", err);
       const msg =
         err?.message ||
         "Não foi possível comprimir a imagem. Tente uma foto menor ou recortada.";
@@ -411,129 +124,70 @@ export default function Ocorrencias() {
       return;
     }
 
-    const imagens = [imagemBase64];
-
-    const categoriaid = Number(data.categoria);
-
     const payload = {
       descricao: descricaoTrim,
-      categoriaid,
+      categoriaid: Number(data.categoria),
       latitude: String(lat),
       longitude: String(lon),
-      rua: data.logradouro || "",
-      ponto_referencia: data.complemento || "",
-      imagens,
+      rua: rua,
+      ponto_referencia: "",
+      imagens: [imagemBase64],
     };
 
-    console.log("PAYLOAD ENVIADO PARA /problem:", payload);
-
     try {
-      const token = localStorage.getItem("arrumaai_token");
+      const token = getToken();
       if (!token) {
         router.replace("/logar");
         return;
       }
 
-      const res = await fetch("https://arruma-ai-api.onrender.com/problem", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      let body = null;
-      try {
-        body = await res.json();
-      } catch (e) {}
-
-      console.log("STATUS /problem:", res.status);
-      console.log("RESPOSTA /problem (json):", JSON.stringify(body, null, 2));
-
-      if (res.status === 401 || res.status === 403) {
-        localStorage.removeItem("arrumaai_token");
-        localStorage.removeItem("arrumaai_userId");
-        router.replace("/logar");
-        return;
-      }
-
-      if (!res.ok) {
-        if (res.status >= 500) {
-          setApiErrorMessage(
-            "O servidor encontrou um problema ao salvar sua solicitação. Tente novamente em alguns minutos."
-          );
-        } else if (body && body.message) {
-          setApiErrorMessage(body.message);
-        } else {
-          setApiErrorMessage(
-            "Não foi possível enviar sua solicitação. Tente novamente."
-          );
-        }
-
-        setShowErrorPopup(true);
-        return;
-      }
+      setEnviando(true);
+      await criarProblema(payload, token);
 
       setShowSuccessPopup(true);
       reset();
       setLatitude("");
       setLongitude("");
-      setValue("latitude", "");
-      setValue("longitude", "");
+      setRua("");
 
-      setTimeout(() => {
-        router.push("/ocorrencias");
-      }, 1500);
+      setTimeout(() => router.push("/ocorrencias"), 1500);
     } catch (err) {
-      console.error("Erro ao chamar API /problem:", err);
-      setApiErrorMessage("Erro ao conectar com o servidor. Tente novamente.");
+      setEnviando(false);
+      if (err.message === "UNAUTHORIZED") {
+        router.replace("/logar");
+        return;
+      }
+      setApiErrorMessage(
+        err.message || "Erro ao conectar com o servidor. Tente novamente."
+      );
       setShowErrorPopup(true);
     }
   }
 
-  function onInvalid(errors) {
-    console.log("Erros de validação:", errors);
+  function onInvalid() {
     setShowSuccessPopup(false);
     setShowErrorPopup(true);
   }
 
-  const classeIntensidade = getClasseIntensidade(intensidade, estilos);
-
   const fieldErrorMessages = Object.values(errors)
     .map((err) => err?.message)
     .filter(Boolean);
-
-  const temErrosCampos = fieldErrorMessages.length > 0;
 
   const errorMessages = [...fieldErrorMessages];
   if (apiErrorMessage) errorMessages.push(apiErrorMessage);
 
   const hasErrors = errorMessages.length > 0;
 
-  useEffect(() => {
-    const token = localStorage.getItem("arrumaai_token");
-
-    if (!token) {
-      router.replace("/logar");
-      return;
-    }
-
-    setCarregando(false);
-  }, [router]);
-
-  if (carregando) {
-    return <Carregando />;
-  }
+  if (carregando) return <Carregando />;
 
   return (
     <>
-      {/* POPUP GLOBAL DE ERROS */}
+      {/* POPUP DE ERROS */}
       {hasErrors && showErrorPopup && (
         <div className={estilos.erroPopup}>
           <div>
             <strong>
-              {temErrosCampos
+              {fieldErrorMessages.length > 0
                 ? "Verifique os campos:"
                 : "Ocorreu um erro ao enviar sua solicitação:"}
             </strong>
@@ -543,7 +197,6 @@ export default function Ocorrencias() {
               ))}
             </ul>
           </div>
-
           <button
             type="button"
             className={estilos.erroPopupClose}
@@ -568,7 +221,6 @@ export default function Ocorrencias() {
         </div>
       )}
 
-      {/* CONTEÚDO PRINCIPAL */}
       <div className={estilos.container}>
         <div className={estilos.container_topo}>
           <h1>Vamos criar uma nova solicitação ?</h1>
@@ -646,9 +298,7 @@ export default function Ocorrencias() {
             {/* IMAGEM */}
             <div className={estilos.imagem}>
               <h2>Imagem</h2>
-
               <label htmlFor="imagem">Anexar Imagem</label>
-
               <input
                 id="imagem"
                 type="file"
@@ -657,7 +307,6 @@ export default function Ocorrencias() {
                   required: "Anexe uma imagem para ajudar na solicitação",
                 })}
               />
-
               {imagemPreview && (
                 <img
                   src={URL.createObjectURL(imagemPreview)}
@@ -665,183 +314,51 @@ export default function Ocorrencias() {
                   width={200}
                 />
               )}
-
               <p>Anexe foto para ajudar na solicitação</p>
             </div>
 
-            {/* GRAU INTENSIDADE */}
-            <div className={estilos.grau_intensidade}>
-              <h2>Grau de intensidade</h2>
-              <div className={estilos.grau_intensidade_opcoes}>
-                <p className={estilos.mensagem_grau_intensidade}>
-                  Escolha com sinceridade o grau de intensidade
-                </p>
+            {/* LOCAL */}
+            <div className={estilos.localSection}>
+              <h2>Local</h2>
 
-                <label htmlFor="grauIntensidade">
-                  <select
-                    id="grauIntensidade"
-                    {...register("intensidade", {
-                      required: "Informe o grau de intensidade",
-                    })}
-                  >
-                    <option value=""></option>
-                    <option value="Baixa">Baixa</option>
-                    <option value="Moderada">Moderada</option>
-                    <option value="Alta">Alta</option>
-                  </select>
-                </label>
+              <div className={estilos.dicaMapa}>
+                <span className={estilos.dicaIcone}>📍</span>
+                <p>Toque no local <strong>exato</strong> do problema no mapa para facilitar a localização pela equipe responsável.</p>
               </div>
 
-              <p className={classeIntensidade}>{intensidade}</p>
+              <div className={estilos.mapaWrapper}>
+                <Mapa onSelect={handleLocalSelecionado} />
+              </div>
+
+              {(latitude || rua) && (
+                <p className={estilos.localSelecionado}>
+                  📍 {rua || "Local marcado"}
+                </p>
+              )}
             </div>
 
-            {/* ENDEREÇO */}
-            <div className={estilos.endereco}>
-              <h2>Endereço</h2>
-
-              <button
-                className={estilos.mapa}
-                type="button"
-                onClick={() => setShowMapa(true)}
-              >
-                Marcar local no mapa
-              </button>
-
-              <label htmlFor="cep">
-                CEP :
-                <input
-                  id="cep"
-                  type="text"
-                  placeholder="00000-000"
-                  {...register("cep", { required: "Informe o CEP" })}
-                  onChange={handleCepChange}
-                  onBlur={buscarCep}
-                />
-              </label>
-
-              <label htmlFor="logradouro">
-                Logradouro :
-                <input
-                  id="logradouro"
-                  type="text"
-                  {...register("logradouro", {
-                    required: "Informe o logradouro",
-                  })}
-                  maxLength={100}
-                />
-              </label>
-
-              <label htmlFor="complemento">
-                Complemento :
-                <input
-                  id="complemento"
-                  type="text"
-                  {...register("complemento")}
-                  maxLength={50}
-                />
-              </label>
-
-              <label htmlFor="bairro">
-                Bairro :
-                <input
-                  id="bairro"
-                  type="text"
-                  {...register("bairro", {
-                    required: "Informe o bairro",
-                  })}
-                  maxLength={100}
-                />
-              </label>
-
-              <label htmlFor="cidade">
-                Cidade :
-                <input
-                  id="cidade"
-                  type="text"
-                  {...register("cidade", {
-                    required: "Informe a cidade",
-                  })}
-                  maxLength={50}
-                />
-              </label>
-
-              <label htmlFor="estado">
-                Estado :
-                <input
-                  id="estado"
-                  type="text"
-                  {...register("estado", {
-                    required: "Informe o estado",
-                  })}
-                  maxLength={50}
-                />
-              </label>
-            </div>
-
-            {/* ocultos para lat/long */}
+            {/* campos ocultos para lat/lng */}
             <input
               type="hidden"
               {...register("latitude", {
-                required:
-                  "Não foi possível obter a latitude. Marque o local no mapa.",
+                required: "Marque o local no mapa para continuar.",
               })}
             />
             <input
               type="hidden"
               {...register("longitude", {
-                required:
-                  "Não foi possível obter a longitude. Marque o local no mapa.",
+                required: "Marque o local no mapa para continuar.",
               })}
             />
 
-            <button
-              className={estilos.enviar}
-              type="submit"
-              disabled={carregandoCoords}
-            >
-              {carregandoCoords
-                ? "Aguarde, localizando endereço..."
-                : "Enviar Solicitação"}
+            <button className={estilos.enviar} type="submit" disabled={enviando}>
+              {enviando ? "Enviando..." : "Enviar Solicitação"}
             </button>
           </form>
         </div>
       </div>
 
       <Nav />
-
-      {showMapa && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background: "#00000088",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              padding: "20px",
-              width: "90%",
-              maxWidth: "600px",
-              borderRadius: "10px",
-            }}
-          >
-            <MapaModal onSelect={handleEnderecoSelecionado} />
-            <button
-              className={estilos.fecharMapa}
-              onClick={() => setShowMapa(false)}
-            >
-              Fechar
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }
